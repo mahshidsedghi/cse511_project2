@@ -4,7 +4,6 @@
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
  
-
 using namespace std;
 
 #define ONEKB 1024
