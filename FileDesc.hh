@@ -42,7 +42,6 @@ int ofdt_open_file(fileRecipe * file_recipe, string file_name, string file_mode)
 	} 
 	if (fdesc == -1) {
 		cerr << "Cannot open another file, the maximum number of open files is " << MAX_NUM_FILES << endl; 
-		exit(1); 
 	}
 	
 	OFDT[fdesc].desc = fdesc;
@@ -69,7 +68,6 @@ int ofdt_close_file(int fdesc){
 fileRecipe * ofdt_fetch_recipe(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
-		exit(1);  
 	}
 	return OFDT[fdesc].file_recipe; 
 }
@@ -77,7 +75,6 @@ fileRecipe * ofdt_fetch_recipe(int fdesc){
 string ofdt_fetch_name(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
-		exit(1);  
 	}
 	return OFDT[fdesc].name; 
 
@@ -85,7 +82,6 @@ string ofdt_fetch_name(int fdesc){
 string ofdt_fetch_mode(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
-		exit(1);  
 	}
 	return OFDT[fdesc].mode; 
 }
