@@ -26,7 +26,7 @@ endif
 AUX=PracticalSocket.cc StringFunctions.cc 
 AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh 
 
-all: ClientLibrary MetadataManager 
+all: ClientLibrary MetadataManager FileServer  
 
 ClientLibrary: ClientLibrary.cc $(AUX) $(AUX_H)
 	$(CXX) $(CXXFLAGS) -o  ClientLibrary ClientLibrary.cc $(AUX) $(LIBS)
@@ -38,4 +38,4 @@ FileServer: FileServer.cc $(AUX) $(AUX_H)
 	$(CXX) -o FileServer FileServer.cc $(AUX) $(LIBS) -lpthread 
 
 clean:
-	$(RM) ClientLibrary MetadataManager
+	$(RM) ClientLibrary MetadataManager FileServer 

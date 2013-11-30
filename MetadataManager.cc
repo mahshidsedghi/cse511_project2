@@ -146,9 +146,13 @@ string execFunc_open(string arguments){
 
 	fileRecipe file_recipe; 
 	file_recipe.stripeWidth = 3; // FIXME 
-	file_recipe.stripeMask = "11000"; // FIXME 
+	file_recipe.stripeMask.set(0); // FIXME
+	file_recipe.stripeMask.set(1);  // FIXME 
+	file_recipe.stripeMask.set(2); // FIXME 
 	
-	string ret_str = file_recipe.stripeWdith + " " + file_recipe.stripeMask; 
+	string ret_str = static_cast<ostringstream*>( &(ostringstream() << file_recipe.stripeWidth ))->str(); 
+	ret_str += " "; 
+	ret_str += "11100"; //file_recipe.stripeMask;  // FIXME 
 
 	return ret_str; 
 }
