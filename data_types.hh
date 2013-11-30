@@ -16,9 +16,12 @@ struct fileRecipe{
 	int stripeWidth; 	
 	bitset<NUM_FILE_SERVERS> stripeMask; 
 
-	fileRecipe(int sw, bitset<int> sm){
+	fileRecipe(int sw, bitset<NUM_FILE_SERVERS> sm){
 		stripeWidth = sw; 
 		stripeMask = sm; 
+	}
+	fileRecipe(){
+		stripeWidth = 0;  
 	}
 }; 
 #endif
