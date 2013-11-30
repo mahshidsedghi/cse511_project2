@@ -1,7 +1,8 @@
 #ifndef DATA_TYPES_H_
 #define DATA_TYPES_H_
 
-#include "config.h"
+#include <bitset>
+#include "config.hh"
 
 typedef size_t LBA; //Logical Block Address (LBA) type
 
@@ -13,11 +14,14 @@ struct blockT {
 
 struct fileRecipe{
 	int stripeWidth; 	
-	bitset<NUM_FILE_SERVER> stripeMask; 
+	bitset<NUM_FILE_SERVERS> stripeMask; 
 
-	fileRecipe(int sw, bitset<int> sm){
+	fileRecipe(int sw, bitset<NUM_FILE_SERVERS> sm){
 		stripeWidth = sw; 
 		stripeMask = sm; 
+	}
+	fileRecipe(){
+		stripeWidth = 0;  
 	}
 }; 
 #endif

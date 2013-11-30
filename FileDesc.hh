@@ -1,5 +1,7 @@
+
 #include "data_types.hh"
 #include <iostream>
+
 
 using namespace std; 
 
@@ -9,7 +11,7 @@ int next_file_descriptor = 0;
 
 struct OpenFile_Entry{
 	int desc; 
-	fileRecipe file_recipe; 
+	fileRecipe * file_recipe; 
 	bool open; 
 	
 	string name; 
@@ -28,7 +30,7 @@ void ofdt_print_all(){
 	}
 }
 
-int ofdt_open_file(fileRecipe file_recipe, string file_name, string file_mode){ 
+int ofdt_open_file(fileRecipe * file_recipe, string file_name, string file_mode){ 
 	int fdesc = -1;
 	for (int i = 0; i < MAX_NUM_FILES; i++){ 
 		if(OFDT[next_file_descriptor].open == false){
@@ -44,7 +46,7 @@ int ofdt_open_file(fileRecipe file_recipe, string file_name, string file_mode){
 	}
 	
 	OFDT[fdesc].desc = fdesc;
-	OFDT[fdesc].file_recipe = file_recipe; 
+	OFDT[fdesc].file_recipe = file_recipe;  
 	OFDT[fdesc].open = true; 
 	OFDT[fdesc].name = file_name; 
 	OFDT[fdesc].mode = file_mode; 
@@ -57,13 +59,14 @@ int ofdt_close_file(int fdesc){
 	if (OFDT[fdesc].open == false)
 		return 0; 
 	OFDT[fdesc].open = false; 
-	OFDT[fdesc].desc = -1; 
-	OFDT[fdesc].file_recipe = -1;  
+	OFDT[fdesc].desc = -1;    
+	delete OFDT[fdesc].file_recipe; 
+
 	return 1; 
 }
 
 // fetch a file information from the ofdt 
-int ofdt_fetch_recipe(int fdesc){
+fileRecipe * ofdt_fetch_recipe(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
 		exit(1);  

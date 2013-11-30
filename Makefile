@@ -34,5 +34,8 @@ ClientLibrary: ClientLibrary.cc $(AUX) $(AUX_H)
 MetadataManager: MetadataManager.cc MetadataManager.hh $(AUX) $(AUX_H) 
 	$(CXX) -D_GNU_SOURCE -o MetadataManager MetadataManager.cc $(AUX) $(LIBS) -lpthread
 
+FileServer: FileServer.cc $(AUX) $(AUX_H) 
+	$(CXX) -o FileServer FileServer.cc $(AUX) $(LIBS) -lpthread 
+
 clean:
 	$(RM) ClientLibrary MetadataManager
