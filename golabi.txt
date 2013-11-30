@@ -1,0 +1,3 @@
+Hi there
+I am a golabi
+It's my pleasure to serve as test case for your code
