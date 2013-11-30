@@ -23,7 +23,7 @@ ifeq ($(shell uname),SunOS)
   LIBS = -lsocket -lnsl
 endif
 
-AUX=PracticalSocket.cc StringFunctions.cc 
+AUX=PracticalSocket.cc  
 AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh 
 
 all: ClientLibrary MetadataManager FileServer  
