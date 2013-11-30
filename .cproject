@@ -16,7 +16,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.cygwin.exe.debug.2094165646." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.cygwin.exe.debug.1212852035" name="Cygwin GCC" superClass="cdt.managedbuild.toolchain.gnu.cygwin.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.cygwin.exe.debug.656450686" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.cygwin.exe.debug"/>
-							<builder buildPath="${workspace_loc:/cse511_project2}/Debug" id="org.eclipse.cdt.build.core.internal.builder.549589710" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<builder buildPath="${workspace_loc:/cse511_project2}/Debug" id="org.eclipse.cdt.build.core.internal.builder.549589710" keepEnvironmentInBuildfile="false" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.gnu.assembler.cygwin.exe.debug.488868891" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.cygwin.exe.debug">
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.1595413250" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
@@ -109,4 +109,12 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+	<storageModule moduleId="refreshScope" versionNumber="2">
+		<configuration configurationName="Release">
+			<resource resourceType="PROJECT" workspacePath="/cse511_project2"/>
+		</configuration>
+		<configuration configurationName="Debug">
+			<resource resourceType="PROJECT" workspacePath="/cse511_project2"/>
+		</configuration>
+	</storageModule>
 </cproject>
