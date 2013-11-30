@@ -1,3 +1,4 @@
+#include "data_types.hh"
 #include <iostream>
 
 using namespace std; 
@@ -8,7 +9,7 @@ int next_file_descriptor = 0;
 
 struct OpenFile_Entry{
 	int desc; 
-	int file_recipe; // FIXME file_recipe is not an int 
+	fileRecipe file_recipe; 
 	bool open; 
 	
 	string name; 
@@ -27,10 +28,7 @@ void ofdt_print_all(){
 	}
 }
 
-
-
-
-int ofdt_open_file(int file_recipe, string file_name, string file_mode){ 
+int ofdt_open_file(fileRecipe file_recipe, string file_name, string file_mode){ 
 	int fdesc = -1;
 	for (int i = 0; i < MAX_NUM_FILES; i++){ 
 		if(OFDT[next_file_descriptor].open == false){

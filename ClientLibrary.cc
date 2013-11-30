@@ -88,7 +88,13 @@ int pfs_open(const char * file_name, const char mode){
     		exit(1);
   	}
 	
-	int file_recipe = atoi(response.c_str());
+	string file_rec_str = response; 
+
+	string st_width = nextToken(file_rec_str); 	
+	string st_mask  = nextToken(file_rec_str); 
+	
+	fileRecipe file_recipe (st_width, st_mask); 
+
 	string fname(file_name);
 	string fmode(1, mode);   
 	return ofdt_open_file(file_recipe, fname, fmode); // return file descriptor  

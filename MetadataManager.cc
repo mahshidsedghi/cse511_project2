@@ -24,6 +24,7 @@
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
 
+#include "data_types.hh"
 
 const int RCVBUFSIZE = 64;
 
@@ -108,7 +109,7 @@ void HandleTCPClient(TCPSocket *sock) {
   	else if ( command == "fstat"  )
 		execFunc_fstat  (recvCommand); 
 
-  	sock->send(response.c_str(), 7);
+  	sock->send(response.c_str(), response.length());
   	
   }
   // Destructor closes socket
@@ -137,15 +138,19 @@ string execFunc_create(string arguments){
 	
 	return string("success"); 
 }
-int execFunc_open(string arguments){
+string execFunc_open(string arguments){
 	string filename = nextToken(arguments); 
 	string mode     = nextToken(arguments); 
 
-	//cout << filename << endl; 
-	//cout << mode     << endl; 
+	// open the file 
 
-	// open the file and return file_recipe 
-	return 1; 
+	fileRecipe file_recipe; 
+	file_recipe.stripeWidth = 3; // FIXME 
+	file_recipe.stripeMask = "11000"; // FIXME 
+	
+	string ret_str = file_recipe.stripeWdith + " " + file_recipe.stripeMask; 
+
+	return ret_str; 
 }
 
 void execFunc_close(string arguments){
