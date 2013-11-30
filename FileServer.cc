@@ -17,6 +17,7 @@
  */
 
 #include "PracticalSocket.hh"  // For Socket, ServerSocket, and SocketException
+#include "StringFunctions.hh"
 #include <iostream>           // For cout, cerr
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  

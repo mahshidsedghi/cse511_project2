@@ -236,9 +236,9 @@ int main(int argc, char *argv[]) {
 
 	
 
-	int ifdes; 
-	ifdes = pfs_open("golabi.txt", 'r');  
-  	cout << "open file: " << ifdes; 
+	//int ifdes; 
+	//ifdes = pfs_open("golabi.txt", 'r');  
+  	//cout << "open file: " << ifdes; 
 	
 	char * buf =  (char *)malloc(5*ONEKB);
   	size_t nread = pfs_read(ifdes, (void *)buf, 4*ONEKB,0, 0);
