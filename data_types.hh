@@ -11,4 +11,13 @@ struct blockT {
 	char status; //dirty, clean or free
 };
 
+struct fileRecipe{
+	int stripeWidth; 	
+	bitset<NUM_FILE_SERVER> stripeMask; 
+
+	fileRecipe(int sw, bitset<int> sm){
+		stripeWidth = sw; 
+		stripeMask = sm; 
+	}
+}; 
 #endif

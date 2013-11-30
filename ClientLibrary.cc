@@ -101,14 +101,21 @@ int pfs_open(const char * file_name, const char mode){
 
 }
 ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cache_hit){ 
-	int file_recipe = ofdt_fetch_recipe (filedes); 
+	fileRecipe file_recipe = ofdt_fetch_recipe (filedes); 
 	string file_name   = ofdt_fetch_name   (filedes); 
 	string file_mode   = ofdt_fetch_mode   (filedes); 
-	
-	
- 
+	// check file_mode if it can read from file 
+
 	// create logical block ID + server 
+
+
 	// read file_name offset nbyte 
+	string command = "read " + file_name + " 0 10"; 
+	
+		
+
+
+
 	// send to mahshid for search 
 	// get result and put in the buf 
 
@@ -196,12 +203,22 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 }
 
 int main(int argc, char *argv[]) {
-	if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
-  	cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
-	if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
-	cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
+//	if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
+//  	cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
+//	if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
+//	cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
 
-	ofdt_print_all(); 
+//	ofdt_print_all(); 
+
+	
+
+	int ifdes; 
+	ifdes = pfs_open("golabi.txt", 'r');  
+  	cout << "open file: " << fdes; 
+	
+	char * buf =  (char *)malloc(5*ONEKB);
+  	size_t nread = pfs_read(ifdes, (void *)buf, 4*ONEKB,0, 0);
+	cout << nread; 
 	return 0;
 }
 
