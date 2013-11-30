@@ -23,6 +23,7 @@
 #include <pthread.h>          // For POSIX threads  
 #include <stdio.h>
 #include "config.hh"
+using namespace std;
 
 const int RCVBUFSIZE = 32;
 
