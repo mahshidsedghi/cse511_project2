@@ -11,6 +11,7 @@
 #include <utility>
 #include <unistd.h>
 #include <assert.h>
+#include <list>
 
 class ClientCache{
 public:

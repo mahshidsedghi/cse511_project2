@@ -114,7 +114,7 @@ int main() {
 //	string str = "hello world";
 //	std::hash<string> str_hash;
 //	cout << "hash of str: " << sizeof(str_hash(str)) << endl;
-
+	list<char> x;
 	return 0;
 }
 
