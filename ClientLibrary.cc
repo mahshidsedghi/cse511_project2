@@ -114,12 +114,12 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	// create logical block ID + server 
 
 	// FIXME read addresses and ports from tables   
-	string servAddress = "75.102.87.54"; 
+	string servAddress = "130.203.40.19"; 
 	unsigned short servPort = 1234; 
 		
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB);  
 	// read file_name offset nbyte 
-	string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string("  10"); 
+	string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string("  1"); 
 	string response; 
 	try{
 		TCPSocket sock(servAddress, servPort); 
