@@ -19,6 +19,8 @@
 #include "PracticalSocket.hh"  // For Socket and SocketException
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
+#include <string.h>
+#include <stdio.h>
 
 using namespace std;
 

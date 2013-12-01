@@ -39,3 +39,10 @@ FileServer: FileServer.cc $(AUX) $(AUX_H)
 
 clean:
 	$(RM) ClientLibrary MetadataManager FileServer 
+
+TCPEchoClient: TCPEchoClient.cc PracticalSocket.cc PracticalSocket.hh
+	$(CXX) $(CXXFLAGS) -o TCPEchoClient TCPEchoClient.cc PracticalSocket.cc $(LIBS)
+
+TCPEchoServer: TCPEchoServer_Thread.cc PracticalSocket.cc PracticalSocket.hh
+	$(CXX) -D_GNU_SOURCE -o TCPEchoServer-Thread TCPEchoServer_Thread.cc PracticalSocket.cc $(LIBS) -lpthread
+  
