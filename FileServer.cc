@@ -23,6 +23,7 @@
 #include <pthread.h>          // For POSIX threads  
 #include <stdio.h>
 #include "config.hh"
+#include "string.h"
 using namespace std;
 
 const int RCVBUFSIZE = 32;
@@ -95,7 +96,7 @@ void HandleTCPClient(TCPSocket *sock) {
   int num_blocks;
   char* block_buffer = (char*) malloc (PFS_BLOCK_SIZE * 1024);
   long int byte_offset;
-  while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
+  if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 	  message = echoBuffer;
 	  command = nextToken(message);
 	  if (toLower(command) == "read") {
@@ -109,8 +110,10 @@ void HandleTCPClient(TCPSocket *sock) {
 					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks << endl;
 			  if(fseek(pfs_file,byte_offset,SEEK_SET))
 				  cerr <<"fseek failed\n";
-			  for(int i=0;i<num_blocks;i++){
-				  fread(block_buffer, PFS_BLOCK_SIZE * 1024, 1, pfs_file);
+			  for(int i=0; i<num_blocks; i++) {
+				  int num_read = fread(block_buffer, PFS_BLOCK_SIZE * 1024, 1, pfs_file);
+					cout << "num read:" << num_read <<endl;
+					cout << "block buffer" << block_buffer << endl;
 				  sock->send(block_buffer, PFS_BLOCK_SIZE * 1024);
 			  }
 			  fclose (pfs_file);
@@ -118,8 +121,34 @@ void HandleTCPClient(TCPSocket *sock) {
 		  else
 			  cerr << "Reading from file which does not exist!\n";
 	  }
-	  else if (toLower(nextToken(message)) == "write") {}
+	  else if (toLower(command) == "write") {
+		  file_name = nextToken(message);
+		  pfs_file = fopen(file_name.c_str(), "w");
+		  if (pfs_file != NULL) {
+			  block_offset = atoi(nextToken(message).c_str());
+			  num_blocks = atoi(nextToken(message).c_str());
+			  byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
+			  cout << "message: " << command << ", filename: " <<file_name <<
+					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks <<endl; 
+			  if(fseek(pfs_file,byte_offset,SEEK_SET))
+				  cerr <<"fseek failed\n";
+			while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
+				message += string(echoBuffer);
+//				sock->send("ack",3);
+			}
+//			cerr <<"msg" << message;
+			int num_write = fwrite(message.c_str(), message.size(), 1, pfs_file);
+			cout << "num write:" << num_write << endl;
+			cout << "message" << message << endl;
+//		 	  sock->send("ack", 3);
+			  fclose (pfs_file);
+		  }
+		  else
+			  cerr << "Reading from file which does not exist!\n";
+	  }
 	  else {}
+//	  fclose (pfs_file);
+	cerr << "exisiting the server loop" ;
   }
 
   // Destructor closes socket
