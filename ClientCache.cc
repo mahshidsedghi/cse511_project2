@@ -3,8 +3,8 @@
 
 using namespace std;
 
-ClientCache::ClientCache(size_t ID){
-	clientID = ID;
+ClientCache::ClientCache(){
+	clientID++; 
 	int rc;
 	stringstream errMsg;
 	blockT b1;

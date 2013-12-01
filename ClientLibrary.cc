@@ -1,13 +1,12 @@
 #include "StringFunctions.hh"
 #include "PracticalSocket.hh"  // For Socket and SocketException
+#include "ClientCache.hh"
 #include "FileDesc.hh"
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
 #include <string.h>
 
-
-
-#include <functional>
+#include <tr1/functional>
 #include <cmath>
 #include <string>
  
@@ -20,14 +19,11 @@ using namespace std;
 
 #define ONEKB 1024
 
-int next_file_desc = 0;
-
-struct fileDesc {
-	int des; 
-	int file_recipe; // we need to define this 
-};  
 
 const int RCVBUFSIZE = 32;    // Size of receive buffer
+
+
+ClientCache disk_cache;
 
 int pfs_create(const char * file_name, int stripe_width){
 	string servAddress = metadataAddress; 
@@ -128,13 +124,15 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 	
 	// create logical block ID + server 
-	hash<string> str_hash;
+	tr1::hash<string> str_hash;
+
 	size_t file_ID = str_hash(file_name);
 	file_ID = file_ID << 22;
-	LBA block_ID = file_ID | (block_offset & int(pow(2,22)-1));
+	size_t temp_offset = (block_offset & int(pow(2,22)-1));
+	LBA block_ID = file_ID | temp_offset;
 	
-	cout << block_ID << endl; 
-
+	disk_cache.lookupBlockInCache(block_ID); 
+	
 
 	// FIXME read addresses and ports from tables   
 	string servAddress = fileserverAddress;  
@@ -299,25 +297,25 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 }
 
 int main(int argc, char *argv[]) {
-//	if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
-//  	cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
-//	if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
-//	cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
+		//	if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
+		//  	cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
+		//	if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
+		//	cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
 
-//	ofdt_print_all(); 
+		//	ofdt_print_all(); 
 
 
-	int ifdes; 
-	ifdes = pfs_open("golabi.txt", 'r');  
-  	cout << "open file: " << ifdes << endl;  
-	
-	char * buf =  (char *)malloc(1*ONEKB);
-	
-//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
-//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
-	 
+		int ifdes; 
+		ifdes = pfs_open("golabi.txt", 'r');  
+		cout << "open file: " << ifdes << endl;  
 
-    ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+		char * buf =  (char *)malloc(1*ONEKB);
+
+		//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
+		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
+
+
+		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 1023* 1024, 0);
 	
 	return 0;
 }
