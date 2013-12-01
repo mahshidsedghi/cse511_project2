@@ -4,9 +4,19 @@
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
 #include <string.h>
+
+
+
+#include <functional>
+#include <cmath>
+#include <string>
  
 using namespace std;
-unsigned short echoServPort; // = atoi(argv[1]);    // First arg:  local port  
+
+#define  metadataAddress "127.0.0.1" 
+#define  metadataPort 1234
+#define  fileserverAddress "130.203.40.19"
+#define  fileserverPort 1234
 
 #define ONEKB 1024
 
@@ -20,8 +30,8 @@ struct fileDesc {
 const int RCVBUFSIZE = 32;    // Size of receive buffer
 
 int pfs_create(const char * file_name, int stripe_width){
-	string servAddress = "127.0.0.1"; 
-	unsigned short servPort = 1234; 
+	string servAddress = metadataAddress; 
+	unsigned short servPort = metadataPort; 
 
 	string command ("create "); 
 	command += file_name;  
@@ -58,8 +68,8 @@ int pfs_create(const char * file_name, int stripe_width){
 }
 
 int pfs_open(const char * file_name, const char mode){
-	string servAddress = "127.0.0.1"; 
-	unsigned short servPort = 1234; 
+	string servAddress = metadataAddress; 
+	unsigned short servPort = metadataPort; 
 	
 	string command ("open "); 
 	command += file_name;  
@@ -108,21 +118,28 @@ int pfs_open(const char * file_name, const char mode){
 }
 ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cache_hit){ 
 
-	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
+	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes); 
 	string file_mode = ofdt_fetch_mode   (filedes); 
 	// FIXME check file_mode if it can read from file 
 
-	// create logical block ID + server 
-
-	// FIXME read addresses and ports from tables   
-	string servAddress = "130.203.40.19"; 
-	unsigned short servPort = 1234; 
-		
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
-
 	int n_blocks = end_block_offset - block_offset + 1 ;  
+	
+	// create logical block ID + server 
+	hash<string> str_hash;
+	size_t file_ID = str_hash(file_name);
+	file_ID = file_ID << 22;
+	LBA block_ID = file_ID | (block_offset & int(pow(2,22)-1));
+	
+	cout << block_ID << endl; 
+
+
+	// FIXME read addresses and ports from tables   
+	string servAddress = fileserverAddress;  
+	unsigned short servPort = fileserverPort; 
+		
 
 
 	cout << block_offset << " " << n_blocks << endl; 
@@ -158,7 +175,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	return 0; 
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
-	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
+	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes); 
 	string file_mode = ofdt_fetch_mode   (filedes); 
 	// FIXME check file_mode if it can read from file 
@@ -166,9 +183,8 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	// create logical block ID + server 
 
 	// FIXME read addresses and ports from tables   
-	string servAddress = "130.203.40.19"; 
-	unsigned short servPort = echoServPort;    // First arg:  local port  
- 
+	string servAddress = fileserverAddress; 
+	unsigned short servPort = fileserverPort;  
 		
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB);  
 	// read file_name offset nbyte 
@@ -181,10 +197,10 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		TCPSocket sock(servAddress, servPort); 
 		sock.send(command.c_str(), command.length()); 
 		
-		char echoBuffer[RCVBUFSIZE+1];
-		int recvMsgSize = 0; 
 
 		// FIXME	
+		//char echoBuffer[RCVBUFSIZE+1];
+		//int recvMsgSize = 0; 
 		// should receive ack  
 		//while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
 		//	echoBuffer[recvMsgSize]='\0'; 
@@ -202,11 +218,11 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	return 0; 
 } 
 int pfs_close(int filedes){
-	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
+	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes);
 
-	string servAddress = "127.0.0.1"; 
-	unsigned short servPort = 1234; 
+	string servAddress = metadataAddress;  
+	unsigned short servPort = metadataPort; 
 	
 	string command ("close "); 
 	command += file_name;  
@@ -239,8 +255,8 @@ int pfs_close(int filedes){
 	return ofdt_close_file(filedes); 	
 } 
 int pfs_delete(const char * file_name){ 
-	string servAddress = "127.0.0.1"; 
-	unsigned short servPort = 1234; 
+	string servAddress = metadataAddress; 
+	unsigned short servPort = metadataPort; 
 	
 	string command ("delete "); 
 	command += file_name;  
@@ -291,20 +307,17 @@ int main(int argc, char *argv[]) {
 //	ofdt_print_all(); 
 
 
-    echoServPort = atoi(argv[1]);    // First arg:  local port  
-
-
 	int ifdes; 
-	ifdes = pfs_open("wgolabi.txt", 'r');  
+	ifdes = pfs_open("golabi.txt", 'r');  
   	cout << "open file: " << ifdes << endl;  
 	
 	char * buf =  (char *)malloc(1*ONEKB);
 	
-	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
-	ssize_t nwrite = pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
+//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
+//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
 	 
 
-    // ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+    ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
 	
 	return 0;
 }
