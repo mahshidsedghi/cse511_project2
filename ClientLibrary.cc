@@ -3,8 +3,10 @@
 #include "FileDesc.hh"
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
+#include <string.h>
  
 using namespace std;
+unsigned short echoServPort; // = atoi(argv[1]);    // First arg:  local port  
 
 #define ONEKB 1024
 
@@ -117,9 +119,18 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	string servAddress = "130.203.40.19"; 
 	unsigned short servPort = 1234; 
 		
-	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB);  
+	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
+	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
+
+	int n_blocks = end_block_offset - block_offset + 1 ;  
+
+
+	cout << block_offset << " " << n_blocks << endl; 
+
 	// read file_name offset nbyte 
-	string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string("  1"); 
+	string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
+	command +=  static_cast<ostringstream*>( &(ostringstream() << n_blocks ))->str();  
+ 
 	string response; 
 	try{
 		TCPSocket sock(servAddress, servPort); 
@@ -129,9 +140,10 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		int recvMsgSize = 0; 
 	
 		// should receive a lot of data from metadata manager 
-		while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+		while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
 			echoBuffer[recvMsgSize]='\0'; 
-			response += echoBuffer; 
+			response += echoBuffer;
+			cout << "res: " << echoBuffer << endl;  
 		}
 		
 	}catch(SocketException &e){
@@ -139,9 +151,53 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		exit(1); 
 	}
 
-	cout << response; 
+	cout <<"response received: " <<  response << endl; 
 	// send to mahshid for search 
 	// get result and put in the buf 
+
+	return 0; 
+}
+size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
+	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
+	string file_name = ofdt_fetch_name   (filedes); 
+	string file_mode = ofdt_fetch_mode   (filedes); 
+	// FIXME check file_mode if it can read from file 
+
+	// create logical block ID + server 
+
+	// FIXME read addresses and ports from tables   
+	string servAddress = "130.203.40.19"; 
+	unsigned short servPort = echoServPort;    // First arg:  local port  
+ 
+		
+	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB);  
+	// read file_name offset nbyte 
+	string command = string("write ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 ");
+	command += string((char*)buf); 
+	command += "\0"; 
+ 
+	string response; 
+	try{
+		TCPSocket sock(servAddress, servPort); 
+		sock.send(command.c_str(), command.length()); 
+		
+		char echoBuffer[RCVBUFSIZE+1];
+		int recvMsgSize = 0; 
+
+		// FIXME	
+		// should receive ack  
+		//while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
+		//	echoBuffer[recvMsgSize]='\0'; 
+		//	response += echoBuffer;
+		//	cout << "res: " << echoBuffer << endl;  
+		//}
+		
+	}catch(SocketException &e){
+		cerr << e.what() << endl; 
+		exit(1); 
+	}
+
+	cout <<"response received: " <<  response << endl;  // should be ack 
 
 	return 0; 
 } 
@@ -235,13 +291,21 @@ int main(int argc, char *argv[]) {
 //	ofdt_print_all(); 
 
 
+    echoServPort = atoi(argv[1]);    // First arg:  local port  
+
+
 	int ifdes; 
-	ifdes = pfs_open("golabi.txt", 'r');  
-  	cout << "open file: " << ifdes; 
+	ifdes = pfs_open("wgolabi.txt", 'r');  
+  	cout << "open file: " << ifdes << endl;  
 	
-	char * buf =  (char *)malloc(5*ONEKB);
-  	size_t nread = pfs_read(ifdes, (void *)buf, 4*ONEKB,0, 0);
-	cout << nread; 
+	char * buf =  (char *)malloc(1*ONEKB);
+	
+	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
+	ssize_t nwrite = pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
+	 
+
+    // ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+	
 	return 0;
 }
 

@@ -77,10 +77,15 @@ void HandleTCPClient(TCPSocket *sock) {
   char echoBuffer[RCVBUFSIZE];
   int recvMsgSize;
   while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) { // Zero means
-                                                         // end of transmission
+      
+	cout << echoBuffer << endl;                                                    // end of transmission
+  	//sock->send(echoBuffer, recvMsgSize);
     // Echo message back to client
-    sock->send(echoBuffer, recvMsgSize);
-  }
+  } 
+	cout << "something " << endl; 
+	sock->send("ack", 3); 
+
+ 
   // Destructor closes socket
 }
 
