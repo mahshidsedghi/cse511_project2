@@ -134,13 +134,13 @@ void HandleTCPClient(TCPSocket *sock) {
 				  cerr <<"fseek failed\n";
 			while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 				message += string(echoBuffer);
-//				sock->send("ack",3);
+//				sock->send("ack",3); //FIXME
 			}
 //			cerr <<"msg" << message;
 			int num_write = fwrite(message.c_str(), message.size(), 1, pfs_file);
 			cout << "num write:" << num_write << endl;
 			cout << "message" << message << endl;
-//		 	  sock->send("ack", 3);
+//		 	  sock->send("ack", 3); //FIXME
 			  fclose (pfs_file);
 		  }
 		  else
