@@ -15,8 +15,8 @@
 
 class ClientCache{
 public:
-	size_t clientID;
-	ClientCache(size_t);
+	static size_t clientID = 0;
+	ClientCache();
 	static const int FREE_LIST_MIN_T = 10;
 	static const int FREE_LIST_MAX_T = 20;
 	static const int BUFFER_CACHE_CAPACITY = 2*1024/PFS_BLOCK_SIZE; //max number of blocks in buffer cache

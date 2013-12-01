@@ -29,7 +29,7 @@ AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh
 all: ClientLibrary MetadataManager FileServer  
 
 ClientLibrary: ClientLibrary.cc $(AUX) $(AUX_H)
-	$(CXX) $(CXXFLAGS) -o  ClientLibrary ClientLibrary.cc $(AUX) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o  ClientLibrary ClientLibrary.cc ClientCache.cc $(AUX) $(LIBS)
 
 MetadataManager: MetadataManager.cc MetadataManager.hh $(AUX) $(AUX_H) 
 	$(CXX) -D_GNU_SOURCE -o MetadataManager MetadataManager.cc $(AUX) $(LIBS) -lpthread
