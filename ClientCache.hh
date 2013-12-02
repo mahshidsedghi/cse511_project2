@@ -4,18 +4,19 @@
 #include <iostream>
 #include <string>
 #include <list>
-#include "data_types.h"
+#include "data_types.hh"
 #include <pthread.h>
 #include <sstream>
-#include <unordered_map>
+#include <tr1/unordered_map>
 #include <utility>
 #include <unistd.h>
 #include <assert.h>
 #include <list>
+#include "config.hh"
 
 class ClientCache{
 public:
-	static size_t clientID = 0;
+	static size_t clientID;
 	ClientCache();
 	static const int FREE_LIST_MIN_T = 10;
 	static const int FREE_LIST_MAX_T = 20;
@@ -24,14 +25,14 @@ public:
 	static void *flushingFunc(void*);
 	void writeSingleBlockToCache(blockT);
 	void writeMultipleBlocksToCache(blockT*,size_t);
-	bool lookupBlockInCache(blockT);
+	bool lookupBlockInCache(LBA);
 	void showUsedSpace();
 	void showCacheStatus();
 	~ClientCache();
 	
 private:
 	std::list<blockT> freeSpace;
-	std::unordered_map<LBA,blockT> usedSpace; //only for clean and dirty blocks
+	std::tr1::unordered_map<LBA,blockT> usedSpace; //only for clean and dirty blocks
 	pthread_t harvester;
 	pthread_t flusher;
 };

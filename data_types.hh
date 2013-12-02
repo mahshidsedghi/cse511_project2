@@ -14,9 +14,9 @@ struct blockT {
 
 struct fileRecipe{
 	int stripeWidth; 	
-	bitset<NUM_FILE_SERVERS> stripeMask; 
+	std::bitset<NUM_FILE_SERVERS> stripeMask; 
 
-	fileRecipe(int sw, bitset<NUM_FILE_SERVERS> sm){
+	fileRecipe(int sw, std::bitset<NUM_FILE_SERVERS> sm){
 		stripeWidth = sw; 
 		stripeMask = sm; 
 	}

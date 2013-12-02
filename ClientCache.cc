@@ -1,7 +1,9 @@
-#include "ClientCache.h"
+#include "ClientCache.hh"
 #include <stdexcept>
 
 using namespace std;
+
+size_t ClientCache::clientID = 0;
 
 ClientCache::ClientCache(){
 	clientID++; 
@@ -78,12 +80,14 @@ void ClientCache::writeMultipleBlocksToCache(blockT* blocks, size_t n) {
 
 void ClientCache::showUsedSpace() {
 	cout << "Used space size:" << usedSpace.size() << endl;
-	for (const auto &pair : usedSpace)
-		cout << "LBA_" << (size_t)pair.first << "[0]: " << pair.second.data[0] << endl;
+//	for (auto &pair : usedSpace)
+//		cout << "LBA_" << (size_t)pair.first << "[0]: " << pair.second.data[0] << endl;
+	for (std::tr1::unordered_map<LBA,blockT>::iterator it = usedSpace.begin(); it != usedSpace.end(); ++it)
+		cout << "LBA_" << (size_t)it->first << "[0]: " << it->second.data[0] << endl;
 }
 
-bool ClientCache::lookupBlockInCache(blockT b) {
-	if(usedSpace.find(b.blockAdr) != usedSpace.end()) //will it search the whole bucket?
+bool ClientCache::lookupBlockInCache(LBA block_ID) {
+	if(usedSpace.find(block_ID) != usedSpace.end()) //will it search the whole bucket?
 		return true;
 	else
 		return false;
@@ -97,8 +101,8 @@ void ClientCache::showCacheStatus()
 
 ClientCache::~ClientCache(){}
 
-int main() {
-	ClientCache mycache(1);
+/*int main() {
+	ClientCache mycache;
 	blockT b1;
 	for (int i = 0; i < 10; i++)
 	{
@@ -108,7 +112,7 @@ int main() {
 	}
 	b1.blockAdr = (size_t)20;
 	mycache.showUsedSpace();
-	cout << "lookup result:" << mycache.lookupBlockInCache(b1) << endl;
+	cout << "lookup result:" << mycache.lookupBlockInCache(b1.blockAdr) << endl;
 	mycache.showCacheStatus();
 
 //	string str = "hello world";
@@ -116,5 +120,5 @@ int main() {
 //	cout << "hash of str: " << sizeof(str_hash(str)) << endl;
 	list<char> x;
 	return 0;
-}
+} */
 
