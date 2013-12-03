@@ -93,6 +93,15 @@ bool ClientCache::lookupBlockInCache(LBA block_ID) {
 		return false;
 }
 
+blockT* ClientCache::getBlockFromCache(LBA block_ID) {
+	std::tr1::unordered_map<LBA,blockT>::iterator it;
+	it = usedSpace.find(block_ID);
+	if(it != usedSpace.end()) //will it search the whole bucket?
+		return &(it->second);
+	else
+		return NULL;
+}
+
 void ClientCache::showCacheStatus()
 {
 	cout << "Client #"<< clientID << " Free Space Size: " << freeSpace.size() << endl;

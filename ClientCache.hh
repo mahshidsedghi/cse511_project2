@@ -26,6 +26,7 @@ public:
 	void writeSingleBlockToCache(blockT);
 	void writeMultipleBlocksToCache(blockT*,size_t);
 	bool lookupBlockInCache(LBA);
+	blockT* getBlockFromCache(LBA);
 	void showUsedSpace();
 	void showCacheStatus();
 	~ClientCache();
