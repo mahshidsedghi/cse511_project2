@@ -124,8 +124,8 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 	
 	// create logical block ID + server 
-	tr1::hash<string> str_hash;
-	LBA block_ID (file_name, block_offset);
+	//tr1::hash<string> str_hash;
+	LBA block_ID (file_name, (size_t)block_offset);
 
 	/*
 	size_t file_ID = str_hash(file_name);

@@ -1,11 +1,12 @@
 #ifndef DATA_TYPES_H_
 #define DATA_TYPES_H_
 
+#include <string>
 #include <bitset>
 #include "config.hh"
 
 //typedef size_t LBA; //Logical Block Address (LBA) type
-typedef std::pair<string,size_t> LBA; //Logical Block Address (LBA) type
+typedef std::pair<std::string,size_t> LBA; //Logical Block Address (LBA) type
 
 struct blockT {
 	LBA blockAdr; //what about file server ID?
