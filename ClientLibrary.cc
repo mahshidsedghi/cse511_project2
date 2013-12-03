@@ -137,55 +137,51 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 
 	if (hit == true){
 		cout << "hit " << endl; 
-
+		blockT * bt = disk_cache.getBlockFromCache(block_ID);
+		strcpy(buf, bt->data); // FIXME  
 	}
 	else {
-
-	// FIXME read addresses and ports from tables   
-	string servAddress = fileserverAddress;  
-	unsigned short servPort = fileserverPort; 
+		cout << "miss" << endl; 
+		// FIXME read addresses and ports from tables   
+		string servAddress = fileserverAddress;  
+		unsigned short servPort = fileserverPort; 
 		
-
-
-	cout << block_offset << " " << n_blocks << endl; 
-
-	// read file_name offset nbyte 
-	string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
-	command +=  static_cast<ostringstream*>( &(ostringstream() << n_blocks ))->str();  
+		// read file_name offset nbyte 
+		string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
+		command += " "; 
+		command +=  static_cast<ostringstream*>( &(ostringstream() << n_blocks ))->str();  
  
-	response; 
-	try{
-		TCPSocket sock(servAddress, servPort); 
-		sock.send(command.c_str(), command.length()); 
-		
-		char echoBuffer[RCVBUFSIZE+1];
-		int recvMsgSize = 0; 
+		string response;
+		try{
+			TCPSocket sock(servAddress, servPort); 
+			sock.send(command.c_str(), command.length()); 
 	
-		// should receive a lot of data from metadata manager 
-		while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
-			echoBuffer[recvMsgSize]='\0'; 
-			response += echoBuffer;
-			cout << "res: " << echoBuffer << endl;  
+			char echoBuffer[RCVBUFSIZE+1];
+			int recvMsgSize = 0; 
+		
+			// should receive a lot of data from metadata manager 
+			while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
+				echoBuffer[recvMsgSize]='\0'; 
+				response += echoBuffer; 
+			}
+		
+		}catch(SocketException &e){
+			cerr << e.what() << endl; 
+			exit(1); 
 		}
-		
-	}catch(SocketException &e){
-		cerr << e.what() << endl; 
-		exit(1); 
-	}
 
-	cout <<"response received: " <<  response << endl; 
-	// send to mahshid for search 
-	// get result and put in the buf 
+		// send to mahshid for search 
+		// get result and put in the buf 
+	
+		blockT bt;
+		strcpy(bt.data, response.c_str());  
+		bt.blockAdr = block_ID; 
+		bt.status = 'C'; 
+	
+		disk_cache.writeSingleBlockToCache(bt); 
 
+		strcpy(buf, bt.data); 
 	} 
-	
-	blockT bt;
-	strcpy(bt.data, response.c_str());  
-	bt.blockAdr = block_ID; 
-	bt.status = 'C'; 
-	
-	disk_cache.writeSingleBlockToCache(bt); 
-	
 	return 0; 
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
@@ -331,8 +327,11 @@ int main(int argc, char *argv[]) {
 		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
 
 
-		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 1023* 1024, 0);
-			 	nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 1023* 1024, 0);
+		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+
+		cout << buf << endl; 
+			 	nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+		cout << buf << endl; 
 	
 	return 0;
 }
