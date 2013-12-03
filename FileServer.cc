@@ -24,6 +24,10 @@
 #include <stdio.h>
 #include "config.hh"
 #include "string.h"
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
 using namespace std;
 
 const int RCVBUFSIZE = 32;
@@ -92,6 +96,7 @@ void HandleTCPClient(TCPSocket *sock) {
   string command;
   string file_name;
   FILE* pfs_file;
+  int fd;
   int block_offset;
   int num_blocks;
   char* block_buffer = (char*) malloc (PFS_BLOCK_SIZE * 1024);
@@ -99,7 +104,22 @@ void HandleTCPClient(TCPSocket *sock) {
   if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 	  message = echoBuffer;
 	  command = nextToken(message);
-	  if (toLower(command) == "read") {
+	  if (toLower(command) == "create") {
+		  file_name = nextToken(message);
+		  struct stat st;
+		  if (stat(file_name.c_str(),&st) == 0 )
+		  	cout << "Trying to create file: " << file_name << " which already exists\n";
+		  else {
+		  	fd = creat(file_name.c_str(), O_CREAT); //what about file access rights?
+	   		if (fd >= 0) {
+				cout << "File : " << file_name << "created on the server\n";
+	 			close(fd);
+			}
+		  	else 
+				cerr << "Failed creating the file on the server!\n";
+		  }
+	  }
+	  else if (toLower(command) == "read") {
 		  file_name = nextToken(message);
 		  pfs_file = fopen(file_name.c_str(), "r");
 		  if (pfs_file != NULL) {

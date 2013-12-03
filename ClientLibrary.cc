@@ -29,8 +29,8 @@ const int RCVBUFSIZE = 32;    // Size of receive buffer
 ClientCache disk_cache;
 
 int pfs_create(const char * file_name, int stripe_width){
-	string servAddress = metadataAddress; 
-	unsigned short servPort = metadataPort; 
+//	string servAddress = metadataAddress; 
+//	unsigned short servPort = metadataPort;
 
 	string command ("create "); 
 	command += file_name;  
@@ -43,13 +43,15 @@ int pfs_create(const char * file_name, int stripe_width){
 
 	string response; 	
 	try{
+		string servAddress = fileserverAddress;  //mahshid
+		unsigned short servPort = fileserverPort; //mahshid
 		TCPSocket sock(servAddress, servPort);
  		sock.send(command.c_str(), commandLen); 
 	
 		char echoBuffer[RCVBUFSIZE+1]; 
 		int recvMsgSize = 0;
 		
-		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){ //do we expect to receive an ack?
 			cerr << "unable to read "; 
 			exit(1); 
 		}
@@ -323,18 +325,20 @@ int main(int argc, char *argv[]) {
 
 
 		int ifdes; 
-		ifdes = pfs_open("golabi.txt", 'r');  
-		cout << "open file: " << ifdes << endl;  
+//		ifdes = pfs_open("golabi.txt", 'r');  
+//		cout << "open file: " << ifdes << endl;  
 
 		char * buf =  (char *)malloc(1*ONEKB);
 
 		//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
 		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
 
-		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		cout << buf << endl; 
-			 	nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		cout << buf << endl; 
+		//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+		//cout << buf << endl; 
+	 	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+		//cout << buf << endl; 
+	 	size_t nread = pfs_create("baghali.txt",1);
+		cout << nread << endl; 
 	
 	return 0;
 }
