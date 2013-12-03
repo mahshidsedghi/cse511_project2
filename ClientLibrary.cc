@@ -131,8 +131,13 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	size_t temp_offset = (block_offset & int(pow(2,22)-1));
 	LBA block_ID = file_ID | temp_offset;
 	
-	disk_cache.lookupBlockInCache(block_ID); 
+	bool hit = disk_cache.lookupBlockInCache(block_ID); 
 	
+	if (hit == true){
+		cout << "hit " << endl; 
+
+	}
+	else {
 
 	// FIXME read addresses and ports from tables   
 	string servAddress = fileserverAddress;  
@@ -170,6 +175,15 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	// send to mahshid for search 
 	// get result and put in the buf 
 
+	} 
+	
+	blockT bt;
+	strcpy(bt.data, response.c_str());  
+	bt.blockAddr = blockID; 
+	bt.status = 'C'; 
+	
+	disk_cache.writeSingleBlockToCache(bt); 
+	
 	return 0; 
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
@@ -316,6 +330,7 @@ int main(int argc, char *argv[]) {
 
 
 		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 1023* 1024, 0);
+			 	nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 1023* 1024, 0);
 	
 	return 0;
 }
