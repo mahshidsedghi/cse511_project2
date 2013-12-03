@@ -125,12 +125,15 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	
 	// create logical block ID + server 
 	tr1::hash<string> str_hash;
+	LBA block_ID (file_name, block_offset);
 
+	/*
 	size_t file_ID = str_hash(file_name);
 	file_ID = file_ID << 22;
 	size_t temp_offset = (block_offset & int(pow(2,22)-1));
 	LBA block_ID = file_ID | temp_offset;
-	
+	*/ 
+
 	bool hit = disk_cache.lookupBlockInCache(block_ID); 
 	
 	string response; 
@@ -138,7 +141,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	if (hit == true){
 		cout << "hit " << endl; 
 		blockT * bt = disk_cache.getBlockFromCache(block_ID);
-		strcpy(buf, bt->data); // FIXME  
+		strcpy((char *)buf, bt->data); // FIXME  
 	}
 	else {
 		cout << "miss" << endl; 
@@ -180,7 +183,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	
 		disk_cache.writeSingleBlockToCache(bt); 
 
-		strcpy(buf, bt.data); 
+		strcpy((char *)buf, bt.data); 
 	} 
 	return 0; 
 }
@@ -326,9 +329,7 @@ int main(int argc, char *argv[]) {
 		//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
 		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
 
-
 		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-
 		cout << buf << endl; 
 			 	nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
 		cout << buf << endl; 
