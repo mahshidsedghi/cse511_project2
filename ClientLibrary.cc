@@ -12,10 +12,13 @@
  
 using namespace std;
 
-#define  metadataAddress "127.0.0.1" 
+//#define  metadataAddress "127.0.0.1" 
+#define  metadataAddress "130.203.59.130" //ganga
 #define  metadataPort 1234
-#define  fileserverAddress "130.203.40.19"
-#define  fileserverPort 1234
+//#define  fileserverAddress "130.203.40.19"
+#define  fileserverAddress "130.203.59.130" //ganga
+//#define  fileserverPort 1234
+#define  fileserverPort 1235
 
 #define ONEKB 1024
 
@@ -124,16 +127,15 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 	
 	// create logical block ID + server 
-	//tr1::hash<string> str_hash;
-	LBA block_ID (file_name, (size_t)block_offset);
+//	LBA block_ID (file_name, (size_t)block_offset);
 
-	/*
+	
+	tr1::hash<string> str_hash;
 	size_t file_ID = str_hash(file_name);
 	file_ID = file_ID << 22;
 	size_t temp_offset = (block_offset & int(pow(2,22)-1));
 	LBA block_ID = file_ID | temp_offset;
-	*/ 
-
+	
 	bool hit = disk_cache.lookupBlockInCache(block_ID); 
 	
 	string response; 

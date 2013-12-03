@@ -5,13 +5,15 @@
 #include <bitset>
 #include "config.hh"
 
-//typedef size_t LBA; //Logical Block Address (LBA) type
-typedef std::pair<std::string,size_t> LBA; //Logical Block Address (LBA) type
+typedef size_t LBA; //Logical Block Address (LBA) type
+//typedef std::pair<std::string,size_t> LBA; //Logical Block Address (LBA) type
 
 struct blockT {
 	LBA blockAdr; //what about file server ID?
 	char data[PFS_BLOCK_SIZE*1024/sizeof(char)];
 	char status; //dirty, clean or free
+	std::string file_name;
+	size_t block_offset;
 };
 
 struct fileRecipe{

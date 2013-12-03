@@ -55,7 +55,7 @@ void* ClientCache::flushingFunc(void *id){
 void ClientCache::writeSingleBlockToCache(blockT b) {
 //	assert(freeSpace.size() + usedSpace.size() <= BUFFER_CACHE_CAPACITY);
 	if (!freeSpace.empty()) {
-		pair<LBA,blockT> mypair = make_pair(b.blockAdr,b);
+		std::pair<LBA,blockT> mypair = make_pair(b.blockAdr,b);
 		freeSpace.pop_front();
 		usedSpace.insert(mypair);
 	}
@@ -83,7 +83,7 @@ void ClientCache::showUsedSpace() {
 //	for (auto &pair : usedSpace)
 //		cout << "LBA_" << (size_t)pair.first << "[0]: " << pair.second.data[0] << endl;
 	for (std::tr1::unordered_map<LBA,blockT>::iterator it = usedSpace.begin(); it != usedSpace.end(); ++it)
-		cout << "LBA_" << it->first.first << "offset:" <<it->first.second << "[0]: " << it->second.data[0] << endl;
+		cout << "LBA_" << it->first << "[0]: " << it->second.data[0] << endl;
 }
 
 bool ClientCache::lookupBlockInCache(LBA block_ID) {
