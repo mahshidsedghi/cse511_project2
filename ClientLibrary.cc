@@ -133,6 +133,8 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	
 	bool hit = disk_cache.lookupBlockInCache(block_ID); 
 	
+	string response; 
+
 	if (hit == true){
 		cout << "hit " << endl; 
 
@@ -151,7 +153,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
 	command +=  static_cast<ostringstream*>( &(ostringstream() << n_blocks ))->str();  
  
-	string response; 
+	response; 
 	try{
 		TCPSocket sock(servAddress, servPort); 
 		sock.send(command.c_str(), command.length()); 
@@ -179,7 +181,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	
 	blockT bt;
 	strcpy(bt.data, response.c_str());  
-	bt.blockAddr = blockID; 
+	bt.blockAdr = block_ID; 
 	bt.status = 'C'; 
 	
 	disk_cache.writeSingleBlockToCache(bt); 
