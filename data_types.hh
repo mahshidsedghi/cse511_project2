@@ -8,7 +8,7 @@ typedef size_t LBA; //Logical Block Address (LBA) type
 
 struct blockT {
 	LBA blockAdr; //what about file server ID?
-	int data[PFS_BLOCK_SIZE*1024/sizeof(int)];
+	char data[PFS_BLOCK_SIZE*1024/sizeof(char)];
 	char status; //dirty, clean or free
 };
 
