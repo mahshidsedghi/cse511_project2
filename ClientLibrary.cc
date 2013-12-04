@@ -122,20 +122,47 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes); 
 	string file_mode = ofdt_fetch_mode   (filedes); 
-	// FIXME check file_mode if it can read from file 
-
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 	
-	LBA block_ID (file_name, (size_t)block_offset);
+	for (int i = block_offset; i <= end_block_offset; i++){
+		tr1::hash<string> str_hash;
+		size_t file_ID = str_hash(file_name);
+		file_ID = file_ID << 22;
+		size_t temp_offset = (i & int(pow(2,22)-1));
+		LBA block_ID = file_ID | temp_offset;
+
+		bool hit = disk_cache.lookupBlockInCache(block_ID);
+		blockT * bt;  
+		if (hit == true) {
+			bt = disk_cache.getBlockFromCache(block_ID);
+		}else {
+			bt = disk_cache.readFromFileSerer(file_name, ); 
+			
+			bt.blockAdr = block_ID; 
+			bt.status = 'C'; 
+			bt.file_name = file_name; 
+			bt.block_offset = i; 
+	
+			insertSingleBlockIntoCache(bt); 
+		}
+		string response (bt.data); 
+		
+		// FIXME copy response into buffer of user in the right place 
+
+	}	
+	
+
+/*
+	// LBA block_ID (file_name, (size_t)block_offset);
 	// create logical block ID + server 
 	
-	//tr1::hash<string> str_hash;
-	//size_t file_ID = str_hash(file_name);
-	//file_ID = file_ID << 22;
-	//size_t temp_offset = (block_offset & int(pow(2,22)-1));
-	//LBA block_ID = file_ID | temp_offset;
+	tr1::hash<string> str_hash;
+	size_t file_ID = str_hash(file_name);
+	file_ID = file_ID << 22;
+	size_t temp_offset = (block_offset & int(pow(2,22)-1));
+	LBA block_ID = file_ID | temp_offset;
 	
 	bool hit = disk_cache.lookupBlockInCache(block_ID); 
 	
@@ -183,22 +210,56 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		strcpy(bt.data, response.c_str());  
 		bt.blockAdr = block_ID; 
 		bt.status = 'C'; 
+		bt.file_name = file_name; 
+		bt.block_offset = block_offset; 
 	
 		disk_cache.insertSingleBlockIntoCache(bt); 
+	
 	} 
+		
+	*/
+
 	
-	
-	
-	return 0; 
+
+	return nbyte; // FIXME: if nbytes read is less than available bytes  
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
+	
 	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes); 
 	string file_mode = ofdt_fetch_mode   (filedes); 
-	// FIXME check file_mode if it can read from file 
+	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
+	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
+	int n_blocks = end_block_offset - block_offset + 1 ;  
+	
+	for (int i = block_offset; i <= end_block_offset; i++){
+		tr1::hash<string> str_hash;
+		size_t file_ID = str_hash(file_name);
+		file_ID = file_ID << 22;
+		size_t temp_offset = (i & int(pow(2,22)-1));
+		LBA block_ID = file_ID | temp_offset;
 
-	// create logical block ID + server 
+		bool hit = disk_cache.lookupBlockInCache(block_ID);
+		blockT * bt;  
+		if (hit == true) {
+			bt = disk_cache.getBlockFromCache(block_ID);
+		}else {
+			bt = disk_cache.readFromFileSerer(file_name, ); 
+			
+			bt.blockAdr = block_ID; 
+			//bt.status = 'D'; 
+			bt.file_name = file_name; 
+			bt.block_offset = i; 
+	
+			insertSingleBlockIntoCache(bt); 
+		}
 
+		bt.stutus = 'D'; 
+		bt.data = 0/*FIXME: correct data from buf */; 
+		
+	}	
+
+/*
 	// FIXME read addresses and ports from tables   
 	string servAddress = fileserverAddress; 
 	unsigned short servPort = fileserverPort;  
@@ -231,8 +292,8 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	}
 
 	cout <<"response received: " <<  response << endl;  // should be ack 
-
-	return 0; 
+*/
+	return nbyte; 
 } 
 int pfs_close(int filedes){
 	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
