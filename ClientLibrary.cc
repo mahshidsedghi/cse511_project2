@@ -12,10 +12,13 @@
  
 using namespace std;
 
-#define  metadataAddress "127.0.0.1" 
+//#define  metadataAddress "127.0.0.1" 
+#define  metadataAddress "130.203.59.130" //ganga
 #define  metadataPort 1234
-#define  fileserverAddress "130.203.40.19"
-#define  fileserverPort 1234
+//#define  fileserverAddress "130.203.40.19"
+#define  fileserverAddress "130.203.59.130" //ganga
+//#define  fileserverPort 1234
+#define  fileserverPort 1235
 
 #define ONEKB 1024
 
@@ -26,8 +29,8 @@ const int RCVBUFSIZE = 32;    // Size of receive buffer
 ClientCache disk_cache;
 
 int pfs_create(const char * file_name, int stripe_width){
-	string servAddress = metadataAddress; 
-	unsigned short servPort = metadataPort; 
+//	string servAddress = metadataAddress; 
+//	unsigned short servPort = metadataPort;
 
 	string command ("create "); 
 	command += file_name;  
@@ -40,13 +43,15 @@ int pfs_create(const char * file_name, int stripe_width){
 
 	string response; 	
 	try{
+		string servAddress = fileserverAddress;  //mahshid
+		unsigned short servPort = fileserverPort; //mahshid
 		TCPSocket sock(servAddress, servPort);
  		sock.send(command.c_str(), commandLen); 
 	
 		char echoBuffer[RCVBUFSIZE+1]; 
 		int recvMsgSize = 0;
 		
-		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){ //do we expect to receive an ack?
 			cerr << "unable to read "; 
 			exit(1); 
 		}
@@ -124,14 +129,14 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 	
 	LBA block_ID (file_name, (size_t)block_offset);
-
-	/*
-	size_t file_ID = str_hash(file_name);
-	file_ID = file_ID << 22;
-	size_t temp_offset = (block_offset & int(pow(2,22)-1));
-	LBA block_ID = file_ID | temp_offset;
-	*/ 
-
+	// create logical block ID + server 
+	
+	//tr1::hash<string> str_hash;
+	//size_t file_ID = str_hash(file_name);
+	//file_ID = file_ID << 22;
+	//size_t temp_offset = (block_offset & int(pow(2,22)-1));
+	//LBA block_ID = file_ID | temp_offset;
+	
 	bool hit = disk_cache.lookupBlockInCache(block_ID); 
 	
 	string response; 
@@ -320,18 +325,20 @@ int main(int argc, char *argv[]) {
 
 
 		int ifdes; 
-		ifdes = pfs_open("golabi.txt", 'r');  
-		cout << "open file: " << ifdes << endl;  
+//		ifdes = pfs_open("golabi.txt", 'r');  
+//		cout << "open file: " << ifdes << endl;  
 
 		char * buf =  (char *)malloc(1*ONEKB);
 
 		//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
 		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
 
-		ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		cout << buf << endl; 
-			 	nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		cout << buf << endl; 
+		//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+		//cout << buf << endl; 
+	 	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+		//cout << buf << endl; 
+	 	size_t nread = pfs_create("baghali.txt",1);
+		cout << nread << endl; 
 	
 	return 0;
 }
