@@ -52,10 +52,15 @@ void* ClientCache::harvestingFunc(void *id){
 void* ClientCache::flushingFunc(void *id){
 	size_t ID;
 	ID = size_t(id);
+	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	cout << "flusher thread created successfully for client ID:" << ID << endl;
 	while (true) {
 		usleep(30000000);
-		//do flushing
+/*		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
+			if (it->second.status == 'D') {
+				//writeToFileServer(*it);
+				it->second.status = 'C';
+			}*/
 	}
 	return 0;
 }

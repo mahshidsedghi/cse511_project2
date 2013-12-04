@@ -135,8 +135,10 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		blockT * bt;  
 		if (hit == true) {
 			bt = disk_cache.getBlockFromCache(block_ID);
-		}else {
-			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, "130.203.40.19", 1234); 
+		}
+		else {
+//			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, "130.203.40.19", 1234); 
+			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), i, "130.203.40.19", 1234); //mahshid changed this
 			
 			bt->blockAdr = block_ID; 
 			bt->status = 'C'; 
@@ -236,12 +238,16 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	int off_start;
 	int off_end; 
 	 
-	for (int i = block_offset; i <= end_block_offset; i++){
-		if (i == end_block_offset) off_end = (offset + nbyte) % (PFS_BLOCK_SIZE * ONEKB);
- 		else off_end = PFS_BLOCK_SIZE * ONEKB - 1; 
+	for (int i = block_offset; i <= end_block_offset; i++) {
+		if (i == end_block_offset) 
+			off_end = (offset + nbyte) % (PFS_BLOCK_SIZE * ONEKB);
+ 		else
+			 off_end = PFS_BLOCK_SIZE * ONEKB - 1; 
 
-		if (i == block_offset) off_start = offset % (PFS_BLOCK_SIZE * ONEKB); 
-		else off_start = 0; 
+		if (i == block_offset)
+			 off_start = offset % (PFS_BLOCK_SIZE * ONEKB); 
+		else
+			 off_start = 0; 
 	
 		tr1::hash<string> str_hash;
 		size_t file_ID = str_hash(file_name);
@@ -253,7 +259,8 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		blockT * bt;  
 		if (hit == true) {
 			bt = disk_cache.getBlockFromCache(block_ID);
-		}else {
+		}
+		else {
 			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, string("130.203.40.19"), 1234); 
 			
 			bt->blockAdr = block_ID; 
@@ -265,7 +272,7 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		}
 
 		bt->status = 'D'; 
-		for (int j = off_start; j <= off_end; j++){
+		for (int j = off_start; j <= off_end; j++) {
 			bt->data[j] = ((char*)buf)[i - block_offset + j];
 		} 
 		
