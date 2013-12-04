@@ -113,6 +113,14 @@ void ClientCache::showCacheStatus()
 	cout << "Client #"<< clientID << " Used Space Size: " << usedSpace.size() << endl;
 }
 
+bool readFromFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
+		
+}
+
+bool writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
+
+}
+
 ClientCache::~ClientCache(){}
 
 /*int main() {
