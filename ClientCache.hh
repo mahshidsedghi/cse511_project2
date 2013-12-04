@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include "data_types.hh"
+#include "PracticalSocket.hh"
 #include <pthread.h>
 #include <sstream>
 #include <tr1/unordered_map>
@@ -30,7 +31,7 @@ public:
 	void putBlockIntoCache(blockT); //overwrite an existing block
 	void showUsedSpace();
 	void showCacheStatus();
-	blockT readFromFileServer(char* file_name, LBA block_ID,std::string IP, int port_number);
+	blockT readFromFileServer(char* file_name, size_t block_offset, std::string IP, int port_number);
 	int writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
 	
 	~ClientCache();

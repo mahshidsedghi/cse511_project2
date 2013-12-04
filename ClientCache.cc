@@ -121,12 +121,18 @@ void ClientCache::showCacheStatus()
 	cout << "Client #"<< clientID << " Used Space Size: " << usedSpace.size() << endl;
 }
 
-blockT ClientCache::readFromFileServer(char* file_name, LBA block_ID,std::string IP, int port_number) {
+blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std::string IP, int port_number) {
 //	blockT b1;
 //	return b1;
 	// LBA block_ID (file_name, (size_t)block_offset);
 	// create logical block ID + server 
-	
+
+	tr1::hash<string> str_hash;
+	size_t file_ID = str_hash(file_name);
+	file_ID = file_ID << 22;
+	size_t temp_offset = (block_offset & int(pow(2.0,22.0)-1));
+	LBA block_ID = file_ID | temp_offset;
+
 	bool hit = lookupBlockInCache(block_ID); 
 	
 	string response;
@@ -161,7 +167,7 @@ blockT ClientCache::readFromFileServer(char* file_name, LBA block_ID,std::string
 				response += echoBuffer; 
 			}
 			blockT b1;
-			b1.data = substr(response.c_str(0,strlen(b1.data)); //
+			b1.data = response.substr(0,strlen(b1.data)); //
 			return b1;
 		}
 		catch(SocketException &e){
