@@ -12,13 +12,9 @@
  
 using namespace std;
 
-//#define  metadataAddress "127.0.0.1" 
 #define  metadataAddress "130.203.59.130" //ganga
 #define  metadataPort 1234
-//#define  fileserverAddress "130.203.40.19"
-#define  fileserverAddress "130.203.59.130" //ganga
-//#define  fileserverPort 1234
-#define  fileserverPort 1235
+
 
 #define ONEKB 1024
 
@@ -43,8 +39,8 @@ int pfs_create(const char * file_name, int stripe_width){
 
 	string response; 	
 	try{
-		string servAddress = fileserverAddress;  //mahshid
-		unsigned short servPort = fileserverPort; //mahshid
+		string servAddress = metadataAddress;  //mahshid
+		unsigned short servPort = metadataPort; //mahshid
 		TCPSocket sock(servAddress, servPort);
  		sock.send(command.c_str(), commandLen); 
 	
