@@ -27,7 +27,7 @@ public:
 	void insertMultipleBlocksIntoCache(blockT*,size_t);
 	bool lookupBlockInCache(LBA);
 	blockT* getBlockFromCache(LBA);
-	void putBlockIntoCache(LBA); //overwrite an existing block
+	void putBlockIntoCache(blockT); //overwrite an existing block
 	void showUsedSpace();
 	void showCacheStatus();
 	blockT readFromFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
