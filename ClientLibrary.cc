@@ -124,8 +124,10 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	string file_mode = ofdt_fetch_mode   (filedes); 
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
-	int n_blocks = end_block_offset - block_offset + 1 ;  
+	//int n_blocks = end_block_offset - block_offset + 1 ;  
 	
+	string response(""); 
+
 	for (int i = block_offset; i <= end_block_offset; i++){
 		tr1::hash<string> str_hash;
 		size_t file_ID = str_hash(file_name);
@@ -138,20 +140,22 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		if (hit == true) {
 			bt = disk_cache.getBlockFromCache(block_ID);
 		}else {
-			bt = disk_cache.readFromFileSerer(file_name, ); 
+			/**bt = */disk_cache.readFromFileServer(/*(char *)file_name.c_str(), */block_ID, "130.203.40.19", 1234); 
 			
-			bt.blockAdr = block_ID; 
-			bt.status = 'C'; 
-			bt.file_name = file_name; 
-			bt.block_offset = i; 
+			bt->blockAdr = block_ID; 
+			bt->status = 'C'; 
+			bt->file_name = file_name; 
+			bt->block_offset = i; 
 	
-			insertSingleBlockIntoCache(bt); 
+			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
-		string response (bt.data); 
-		
-		// FIXME copy response into buffer of user in the right place 
+		response += bt->data; 
+	}
+	 
+	int off_first = offset % (PFS_BLOCK_SIZE * ONEKB);
 
-	}	
+	strcpy((char *)buf, response.substr(off_first, nbyte).c_str());  
+		
 	
 
 /*
@@ -230,7 +234,7 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	string file_mode = ofdt_fetch_mode   (filedes); 
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
-	int n_blocks = end_block_offset - block_offset + 1 ;  
+	// int n_blocks = end_block_offset - block_offset + 1 ;  
 	
 	for (int i = block_offset; i <= end_block_offset; i++){
 		tr1::hash<string> str_hash;
@@ -244,18 +248,18 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		if (hit == true) {
 			bt = disk_cache.getBlockFromCache(block_ID);
 		}else {
-			bt = disk_cache.readFromFileSerer(file_name, ); 
+			/**bt = */disk_cache.readFromFileServer(/*(char *)file_name.c_str(), */block_ID, string("130.203.40.19"), 1234); 
 			
-			bt.blockAdr = block_ID; 
-			//bt.status = 'D'; 
-			bt.file_name = file_name; 
-			bt.block_offset = i; 
+			bt->blockAdr = block_ID; 
+			//bt->status = 'D'; 
+			bt->file_name = file_name; 
+			bt->block_offset = i; 
 	
-			insertSingleBlockIntoCache(bt); 
+			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
 
-		bt.stutus = 'D'; 
-		bt.data = 0/*FIXME: correct data from buf */; 
+		bt->status = 'D'; 
+		strcpy(bt->data, "") ; /*FIXME: correct data from buf */; 
 		
 	}	
 
