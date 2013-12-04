@@ -140,7 +140,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		if (hit == true) {
 			bt = disk_cache.getBlockFromCache(block_ID);
 		}else {
-			/**bt = */disk_cache.readFromFileServer(/*(char *)file_name.c_str(), */block_ID, "130.203.40.19", 1234); 
+			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, "130.203.40.19", 1234); 
 			
 			bt->blockAdr = block_ID; 
 			bt->status = 'C'; 
@@ -248,7 +248,7 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		if (hit == true) {
 			bt = disk_cache.getBlockFromCache(block_ID);
 		}else {
-			/**bt = */disk_cache.readFromFileServer(/*(char *)file_name.c_str(), */block_ID, string("130.203.40.19"), 1234); 
+			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, string("130.203.40.19"), 1234); 
 			
 			bt->blockAdr = block_ID; 
 			//bt->status = 'D'; 
