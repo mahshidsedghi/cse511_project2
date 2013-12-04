@@ -234,9 +234,19 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	string file_mode = ofdt_fetch_mode   (filedes); 
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
-	// int n_blocks = end_block_offset - block_offset + 1 ;  
-	
+	int n_blocks = end_block_offset - block_offset + 1 ;  
+
+
+	int off_start;
+	int off_end; 
+	 
 	for (int i = block_offset; i <= end_block_offset; i++){
+		if (i == end_block_offset) off_end = (offset + nbyte) % (PFS_BLOCK_SIZE * ONEKB);
+ 		else off_end = PFS_BLOCK_SIZE * ONEKB - 1; 
+
+		if (i == block_offset) off_start = offset % (PFS_BLOCK_SIZE * ONEKB); 
+		else off_start = 0; 
+	
 		tr1::hash<string> str_hash;
 		size_t file_ID = str_hash(file_name);
 		file_ID = file_ID << 22;
@@ -259,7 +269,9 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		}
 
 		bt->status = 'D'; 
-		strcpy(bt->data, "") ; /*FIXME: correct data from buf */; 
+		for (int j = off_start; j <= off_end; j++){
+			bt->data[j] = ((char*)buf)[i - block_offset + j];
+		} 
 		
 	}	
 
