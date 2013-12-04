@@ -184,7 +184,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		bt.blockAdr = block_ID; 
 		bt.status = 'C'; 
 	
-		disk_cache.writeSingleBlockToCache(bt); 
+		disk_cache.insertSingleBlockIntoCache(bt); 
 	} 
 	
 	

@@ -52,7 +52,7 @@ void* ClientCache::flushingFunc(void *id){
 	return 0;
 }
 
-void ClientCache::writeSingleBlockToCache(blockT b) {
+void ClientCache::insertSingleBlockIntoCache(blockT b) {
 //	assert(freeSpace.size() + usedSpace.size() <= BUFFER_CACHE_CAPACITY);
 	if (!freeSpace.empty()) {
 		std::pair<LBA,blockT> mypair = make_pair(b.blockAdr,b);
@@ -66,7 +66,7 @@ void ClientCache::writeSingleBlockToCache(blockT b) {
 	}
 }
 
-void ClientCache::writeMultipleBlocksToCache(blockT* blocks, size_t n) {
+void ClientCache::insertMultipleBlocksIntoCache(blockT* blocks, size_t n) {
 	if (freeSpace.size() < n) {
 		stringstream errMsg;
 		errMsg << "Trying to write to the cache while not enough free space is available";
@@ -74,7 +74,7 @@ void ClientCache::writeMultipleBlocksToCache(blockT* blocks, size_t n) {
 	}
 	else {
 		for (size_t i = 0; i < n; i++)
-			writeSingleBlockToCache(blocks[i]);
+			insertSingleBlockIntoCache(blocks[i]);
 	}
 }
 
@@ -100,6 +100,11 @@ blockT* ClientCache::getBlockFromCache(LBA block_ID) {
 		return &(it->second);
 	else
 		return NULL;
+}
+
+void ClientCache::putBlockIntoCache(blockT b) {
+	std::pair<LBA,blockT> mypair = make_pair(b.blockAdr,b);
+	usedSpace.insert(mypair);
 }
 
 void ClientCache::showCacheStatus()

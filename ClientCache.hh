@@ -23,12 +23,16 @@ public:
 	static const int BUFFER_CACHE_CAPACITY = 2*1024/PFS_BLOCK_SIZE; //max number of blocks in buffer cache
 	static void *harvestingFunc(void*);
 	static void *flushingFunc(void*);
-	void writeSingleBlockToCache(blockT);
-	void writeMultipleBlocksToCache(blockT*,size_t);
+	void insertSingleBlockIntoCache(blockT); //cache a new block
+	void insertMultipleBlocksIntoCache(blockT*,size_t);
 	bool lookupBlockInCache(LBA);
 	blockT* getBlockFromCache(LBA);
+	void putBlockIntoCache(LBA); //overwrite an existing block
 	void showUsedSpace();
 	void showCacheStatus();
+	bool readFromFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
+	bool writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
+	
 	~ClientCache();
 	
 private:
