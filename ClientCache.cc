@@ -113,9 +113,61 @@ void ClientCache::showCacheStatus()
 	cout << "Client #"<< clientID << " Used Space Size: " << usedSpace.size() << endl;
 }
 
-blockT ClientCache::readFromFileServer(/*char* file_name, */LBA block_ID,std::string IP, int port_number) {
-	blockT b1;
-	return b1;
+blockT ClientCache::readFromFileServer(char* file_name, LBA block_ID,std::string IP, int port_number) {
+//	blockT b1;
+//	return b1;
+	// LBA block_ID (file_name, (size_t)block_offset);
+	// create logical block ID + server 
+	
+	tr1::hash<string> str_hash;
+	size_t file_ID = str_hash(file_name);
+	file_ID = file_ID << 22;
+	size_t temp_offset = (block_offset & int(pow(2,22)-1));
+	LBA block_ID = file_ID | temp_offset;
+	
+	bool hit = lookupBlockInCache(block_ID); 
+	
+	string response;
+
+	if (hit == true){
+		cout << "the block hit in the cache " << endl; 
+		blockT * bt = getBlockFromCache(block_ID); // FIXME get multiple blocks 
+		response =  bt->data;
+	}
+	else {
+		cout << "the block miss in the cache" << endl; 
+		// FIXME read addresses and ports from tables   
+		string servAddress = fileserverAddress;  
+		unsigned short servPort = fileserverPort; 
+		
+		// read file_name offset nbyte 
+		string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
+		command += " "; 
+		command +=  static_cast<ostringstream*>( &(ostringstream() << 1 ))->str();  
+ 
+		string response;
+		try{
+			TCPSocket sock(servAddress, servPort); 
+			sock.send(command.c_str(), command.length()); 
+	
+			char echoBuffer[RCVBUFSIZE+1];
+			int recvMsgSize = 0; 
+		
+			// should receive a lot of data from metadata manager 
+			while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){
+				echoBuffer[recvMsgSize]='\0'; 
+				response += echoBuffer; 
+			}
+			blockT b1;
+			b1.data = substr(response.c_str(0,strlen(b1.data)); //
+			return b1;
+		}
+		catch(SocketException &e){
+			cerr << e.what() << endl; 
+			exit(1);
+		}
+	}
+	return;
 }
 
 int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
