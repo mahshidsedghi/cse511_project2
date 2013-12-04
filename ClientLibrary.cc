@@ -213,7 +213,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		bt.file_name = file_name; 
 		bt.block_offset = block_offset; 
 	
-		disk_cache.writeSingleBlockToCache(bt); 
+		disk_cache.insertSingleBlockIntoCache(bt); 
 	
 	} 
 		
