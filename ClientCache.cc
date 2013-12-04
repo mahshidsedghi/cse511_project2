@@ -167,7 +167,7 @@ blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std
 				response += echoBuffer; 
 			}
 			blockT b1;
-			b1.data = response.substr(0,strlen(b1.data)); //
+			strcpy(b1.data,response.substr(0,strlen(b1.data)).c_str()); 
 			return b1;
 		}
 		catch(SocketException &e){
@@ -175,7 +175,7 @@ blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std
 			exit(1);
 		}
 	}
-	return;
+	return blockT();
 }
 
 int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {

@@ -14,6 +14,10 @@
 #include <assert.h>
 #include <list>
 #include "config.hh"
+#include <cmath>
+#include <string.h>
+#include <stdlib.h>
+#define RCVBUFSIZE 32
 
 class ClientCache{
 public:

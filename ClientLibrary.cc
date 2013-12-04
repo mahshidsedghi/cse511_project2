@@ -19,7 +19,7 @@ using namespace std;
 #define ONEKB 1024
 
 
-const int RCVBUFSIZE = 32;    // Size of receive buffer
+#define RCVBUFSIZE 32    // Size of receive buffer
 
 
 ClientCache disk_cache;
