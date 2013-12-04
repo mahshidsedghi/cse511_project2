@@ -30,8 +30,8 @@ public:
 	void putBlockIntoCache(LBA); //overwrite an existing block
 	void showUsedSpace();
 	void showCacheStatus();
-	bool readFromFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
-	bool writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
+	blockT readFromFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
+	int writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number);
 	
 	~ClientCache();
 	
