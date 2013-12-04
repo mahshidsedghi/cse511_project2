@@ -123,8 +123,6 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 	
-	// create logical block ID + server 
-	//tr1::hash<string> str_hash;
 	LBA block_ID (file_name, (size_t)block_offset);
 
 	/*
@@ -140,8 +138,8 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 
 	if (hit == true){
 		cout << "hit " << endl; 
-		blockT * bt = disk_cache.getBlockFromCache(block_ID);
-		strcpy((char *)buf, bt->data); // FIXME  
+		blockT * bt = disk_cache.getBlockFromCache(block_ID); // FIXME get multiple blocks 
+		response =  bt->data;
 	}
 	else {
 		cout << "miss" << endl; 
@@ -182,9 +180,10 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		bt.status = 'C'; 
 	
 		disk_cache.writeSingleBlockToCache(bt); 
-
-		strcpy((char *)buf, bt.data); 
 	} 
+	
+	
+	
 	return 0; 
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
