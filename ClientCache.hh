@@ -23,11 +23,18 @@ class ClientCache{
 public:
 	static size_t clientID;
 	ClientCache();
-	static const int FREE_LIST_MIN_T = 10;
-	static const int FREE_LIST_MAX_T = 20;
+	static const size_t FREE_LIST_MIN_T = 100;
+	static const size_t FREE_LIST_MAX_T = 2000;
 	static const int BUFFER_CACHE_CAPACITY = 2*1024/PFS_BLOCK_SIZE; //max number of blocks in buffer cache
-	static void *harvestingFunc(void*);
-	static void *flushingFunc(void*);
+	void *harvestingFunc(void);
+	static void *callHarvestingFunc(void* arg) {
+		return ((ClientCache*)arg) -> harvestingFunc();
+	}
+	void *flushingFunc(void);
+	static void *callFlushingFunc(void* arg) {
+		return ((ClientCache*)arg) -> flushingFunc();
+	}
+	
 	void insertSingleBlockIntoCache(blockT); //cache a new block
 	void insertMultipleBlocksIntoCache(blockT*,size_t);
 	bool lookupBlockInCache(LBA);

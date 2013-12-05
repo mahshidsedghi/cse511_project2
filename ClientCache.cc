@@ -22,13 +22,15 @@ ClientCache::ClientCache(){
 	for(int i = 0; i < BUFFER_CACHE_CAPACITY; i++)
 		freeSpace.push_front(b1);
 	cout << "freespace size: " << freeSpace.size() <<endl;
-	rc = pthread_create(&harvester, NULL, &ClientCache::harvestingFunc, (void *)clientID);
+//	rc = pthread_create(&harvester, NULL, &ClientCache::harvestingFunc, (void *)clientID);
+	rc = pthread_create(&harvester, NULL, &ClientCache::callHarvestingFunc, this);
 	if(rc)
 	{
 		errMsg << "Could not create harvester thread in client cache ID:" << clientID;
 		throw runtime_error(errMsg.str());
 	}
-	rc = pthread_create(&flusher, NULL, &ClientCache::flushingFunc, (void *)clientID);
+//	rc = pthread_create(&flusher, NULL, &ClientCache::flushingFunc, (void *)clientID);
+	rc = pthread_create(&flusher, NULL, &ClientCache::callFlushingFunc, this);
 	if(rc)
 	{
 		errMsg << "Could not create flusher thread in client cache ID:" << clientID;
@@ -36,31 +38,32 @@ ClientCache::ClientCache(){
 	}
 }
 
-void* ClientCache::harvestingFunc(void *id){
-	size_t ID;
-	ID = size_t(id);
-	cout << "harvester thread created successfully for client ID:" << ID << endl;
-/*	while (true) {
+void* ClientCache::harvestingFunc(){
+//	size_t ID;
+//	ID = size_t(id);
+	cout << "harvester thread created successfully for client ID:" << endl;//<< ID << endl;
+	while (true) {
 		if(freeSpace.size() < FREE_LIST_MIN_T) {
 			//do harvesting till size reaches FREE_LIST_MAX_T
 			//this should be done based on LRU! but how?
 		}
-	}*/
+	}
 	return 0;
 }
 
-void* ClientCache::flushingFunc(void *id){
-	size_t ID;
-	ID = size_t(id);
+//void* ClientCache::flushingFunc(void *id){
+void* ClientCache::flushingFunc(){
+//	size_t ID;
+//	ID = size_t(id);
+	cout << "flusher thread created successfully for client ID:" << endl;//ID << endl;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
-	cout << "flusher thread created successfully for client ID:" << ID << endl;
 	while (true) {
 		usleep(30000000);
-/*		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
+		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
 			if (it->second.status == 'D') {
 				//writeToFileServer(*it);
 				it->second.status = 'C';
-			}*/
+			}
 	}
 	return 0;
 }
