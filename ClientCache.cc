@@ -198,6 +198,7 @@ int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number)
         string command = string("write ") + b.file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 ");
         command += string(b.data);
         command += "\0";
+	cout << "command:" << command;
         string response;
         try {
                 TCPSocket sock(servAddress, servPort);
