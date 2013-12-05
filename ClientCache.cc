@@ -61,7 +61,7 @@ void* ClientCache::flushingFunc(){
 		usleep(30000000);
 		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
 			if (it->second.status == 'D') {
-				//writeToFileServer(*it);
+//				writeToFileServer(it->second); //FIXME need to add fileserveraddress and fileserverport as the arguments
 				it->second.status = 'C';
 			}
 	}
@@ -187,7 +187,7 @@ blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std
 }
 
 //int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
-int writeToFileServer(blockT b, std::string IP, size_t port_number) {
+int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number) {
         // FIXME read addresses and ports from tables
         string servAddress = fileserverAddress;
         unsigned short servPort = fileserverPort;

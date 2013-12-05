@@ -15,6 +15,9 @@ using namespace std;
 #define  metadataAddress "130.203.59.130" //ganga
 #define  metadataPort 1234
 
+#define  fileserverAddress "130.203.59.130" //ganga
+//#define  fileserverPort 1234
+#define  fileserverPort 1235
 
 #define ONEKB 1024
 
@@ -362,30 +365,30 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 }
 
 int main(int argc, char *argv[]) {
-		//	if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
-		//  	cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
-		//	if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
-		//	cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
+	//if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
+	// cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
+	//if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
+	//cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
+	//ofdt_print_all(); 
+	int ifdes; 
+	//ifdes = pfs_open("golabi.txt", 'r');  
+	//cout << "open file: " << ifdes << endl;  
+	char * buf =  (char *)malloc(1*ONEKB);
+	//strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
+	//pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
+	//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+	//cout << buf << endl; 
+ 	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+	//cout << buf << endl; 
+ 	size_t nread = pfs_create("baghali.txt",1);
+	cout <<"nread:" << nread << endl; 
 
-		//	ofdt_print_all(); 
+	blockT b1;
+	b1.file_name = "golabi.txt";
+	strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
+	size_t nwrite = disk_cache.writeToFileServer(b1,(string)fileserverAddress,(size_t)fileserverPort);
+	cout <<"nwrite:" << nwrite << endl; 
 
-
-		int ifdes; 
-//		ifdes = pfs_open("golabi.txt", 'r');  
-//		cout << "open file: " << ifdes << endl;  
-
-		char * buf =  (char *)malloc(1*ONEKB);
-
-		//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
-		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
-
-		//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		//cout << buf << endl; 
-	 	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		//cout << buf << endl; 
-	 	size_t nread = pfs_create("baghali.txt",1);
-		cout << nread << endl; 
-	
 	return 0;
 }
 
