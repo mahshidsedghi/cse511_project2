@@ -12,12 +12,12 @@
  
 using namespace std;
 
-#define  metadataAddress "130.203.59.130" //ganga
-#define  metadataPort 1234
+#define  metadataAddress "127.0.0.1" //130.203.59.130" //ganga
+#define  metadataPort 1235
 
-#define  fileserverAddress "130.203.59.130" //ganga
+#define  fileserverAddress "127.0.0.1" // 130.203.59.130" //ganga
 //#define  fileserverPort 1234
-#define  fileserverPort 1235
+#define  fileserverPort 1234
 
 #define ONEKB 1024
 
@@ -61,6 +61,8 @@ int pfs_create(const char * file_name, int stripe_width){
     		cerr << e.what() << endl;
     		exit(1);
   	}
+
+	cout << response << endl; 
 
 	if (toLower(response) == "success") 
 		return 1; 
@@ -381,8 +383,8 @@ int main(int argc, char *argv[]) {
 	//cout << buf << endl; 
  	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
 	//cout << buf << endl; 
- 	size_t nread = pfs_create("baghali.txt",1);
-	cout <<"nread:" << nread << endl; 
+ 	int success = pfs_create("googol.txt",1);
+	cout <<"successful creation: " << success << endl; 
 
 	blockT b1;
 	b1.file_name = "baghali.txt";

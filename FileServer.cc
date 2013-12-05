@@ -131,16 +131,20 @@ void *ThreadMain(void *clntSock) {
 void execFunc_create ( TCPSocket * sock, string arguments ){
 	string file_name = nextToken(arguments);
 	struct stat st;
-	if (stat(file_name.c_str(),&st) == 0 )
+	if (stat(file_name.c_str(),&st) == 0 ){
 		cout << "Trying to create file: " << file_name << " which already exists\n";
-	else {
+		sock->send("nack", 4); 
+	}else {
 		int fd = creat(file_name.c_str(), O_CREAT); //what about file access rights?
 	  	if (fd >= 0) {
-			cout << "File : " << file_name << "created on the server\n";
+			cout << "File : " << file_name << " created on the server\n";
 	 		close(fd);
+			sock->send("ack", 3); 
 		}
-		else 
+		else {
 			cerr << "Failed creating the file on the server!\n";
+			sock->send("nack", 4); 
+		}
 	}
 
 } 

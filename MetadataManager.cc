@@ -131,20 +131,18 @@ void *ThreadMain(void *clntSock) {
 
 string execFunc_create(string arguments){
 
-	bool success = true; 
-
 	string filename     = nextToken(arguments); 
 	string stripe_w_str = nextToken(arguments); 
 
 	fileRecipe file_recipe; 
 	file_recipe.stripeWidth = atoi(stripe_w_str.c_str()); 
 
+	string response; 
 	for (int i = 0; i < atoi(stripe_w_str.c_str()); i++){
 		file_recipe.stripeMask.set(i); //FIXME decide in which servers we should stripe the file  
 		
 		// create a file in each server 
 		string command("create "+ filename); 
-		string response;
 		try{
 			TCPSocket sock(servAddress, servPort);
  			sock.send(command.c_str(), command.length()); 
@@ -165,8 +163,6 @@ string execFunc_create(string arguments){
     		response="nack"; 
   		}
 		
-		if (response == "nack") 
-			success = false; 
 
 	}
 
@@ -175,7 +171,7 @@ string execFunc_create(string arguments){
 	
 	general_file_table.insert(pair<string, fileEntry>(filename, fentry)); 
 
-	if (!success)
+	if (toLower(response) == "nack")
 		return string("failed");
 
 	return string("success"); 
