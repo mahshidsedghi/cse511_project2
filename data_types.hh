@@ -18,6 +18,7 @@ struct fileRecipe{
 	fileRecipe(){
 		stripeWidth = 0;  
 	}
+	
 }; 
 
 struct blockT {

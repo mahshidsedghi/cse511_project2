@@ -18,6 +18,7 @@
 
 #include "PracticalSocket.hh"  // For Socket, ServerSocket, and SocketException
 #include "StringFunctions.hh"
+#include "FileServer.hh"
 #include <iostream>           // For cout, cerr
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
@@ -94,79 +95,21 @@ void HandleTCPClient(TCPSocket *sock) {
   //serve the client request
   string message;
   string command;
-  string file_name;
-  FILE* pfs_file;
-  int fd;
-  int block_offset;
-  int num_blocks;
-  char* block_buffer = (char*) malloc (PFS_BLOCK_SIZE * 1024);
-  long int byte_offset;
   if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 	  message = echoBuffer;
 	  command = nextToken(message);
 	  if (toLower(command) == "create") {
-		  file_name = nextToken(message);
-		  struct stat st;
-		  if (stat(file_name.c_str(),&st) == 0 )
-		  	cout << "Trying to create file: " << file_name << " which already exists\n";
-		  else {
-		  	fd = creat(file_name.c_str(), O_CREAT); //what about file access rights?
-	   		if (fd >= 0) {
-				cout << "File : " << file_name << "created on the server\n";
-	 			close(fd);
-			}
-		  	else 
-				cerr << "Failed creating the file on the server!\n";
-		  }
+			execFunc_create(sock, message); 
 	  }
 	  else if (toLower(command) == "read") {
-		  file_name = nextToken(message);
-		  pfs_file = fopen(file_name.c_str(), "r");
-		  if (pfs_file != NULL) {
-			  block_offset = atoi(nextToken(message).c_str());
-			  num_blocks = atoi(nextToken(message).c_str());
-			  byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
-			  cout << "message: " << command << ", filename: " <<file_name <<
-					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks << endl;
-			  if(fseek(pfs_file,byte_offset,SEEK_SET))
-				  cerr <<"fseek failed\n";
-			  for(int i=0; i<num_blocks; i++) {
-				  int num_read = fread(block_buffer, PFS_BLOCK_SIZE * 1024, 1, pfs_file);
-					cout << "num read:" << num_read <<endl;
-					cout << "block buffer" << block_buffer << endl;
-				  sock->send(block_buffer, PFS_BLOCK_SIZE * 1024);
-			  }
-			  fclose (pfs_file);
-		  }
-		  else
-			  cerr << "Reading from file which does not exist!\n";
+			execFunc_read(sock, message); 
 	  }
 	  else if (toLower(command) == "write") {
-		  file_name = nextToken(message);
-		  pfs_file = fopen(file_name.c_str(), "w");
-		  if (pfs_file != NULL) {
-			  block_offset = atoi(nextToken(message).c_str());
-			  num_blocks = atoi(nextToken(message).c_str());
-			  byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
-			  cout << "message: " << command << ", filename: " <<file_name <<
-					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks <<endl; 
-			  if(fseek(pfs_file,byte_offset,SEEK_SET))
-				  cerr <<"fseek failed\n";
-			while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
-				message += string(echoBuffer);
-//				sock->send("ack",3); //FIXME
-			}
-//			cerr <<"msg" << message;
-			int num_write = fwrite(message.c_str(), message.size(), 1, pfs_file);
-			cout << "num write:" << num_write << endl;
-			cout << "message" << message << endl;
-//		 	sock->send("ack", 3); //FIXME
-			fclose (pfs_file);
-		  }
-		  else
-			  cerr << "Reading from file which does not exist!\n";
+      		execFunc_write(sock, message); 
 	  }
-	  else {}
+	  else {
+			cout << "unknown command" << endl; 		
+	  }
 //	  fclose (pfs_file);
 	cerr << "exisiting the server loop" ;
   }
@@ -184,4 +127,79 @@ void *ThreadMain(void *clntSock) {
   delete (TCPSocket *) clntSock;
   return NULL;
 }
+
+void execFunc_create ( TCPSocket * sock, string arguments ){
+	string file_name = nextToken(arguments);
+	struct stat st;
+	if (stat(file_name.c_str(),&st) == 0 )
+		cout << "Trying to create file: " << file_name << " which already exists\n";
+	else {
+		int fd = creat(file_name.c_str(), O_CREAT); //what about file access rights?
+	  	if (fd >= 0) {
+			cout << "File : " << file_name << "created on the server\n";
+	 		close(fd);
+		}
+		else 
+			cerr << "Failed creating the file on the server!\n";
+	}
+
+} 
+void execFunc_read   ( TCPSocket * sock, string arguments ){
+ 	string file_name = nextToken(arguments);
+	FILE* pfs_file = fopen(file_name.c_str(), "r");
+	if (pfs_file != NULL) {
+		int block_offset = atoi(nextToken(arguments).c_str());
+		int num_blocks = atoi(nextToken(arguments).c_str());
+		long int byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
+		cout << "message: " << "read" << ", filename: " <<file_name <<
+				", block_offset: " << block_offset << ", num_blocks: "<< num_blocks << endl;
+		if(fseek(pfs_file,byte_offset,SEEK_SET))
+			cerr <<"fseek failed\n";
+		for(int i=0; i<num_blocks; i++) {
+			char* block_buffer = (char*) malloc (PFS_BLOCK_SIZE * 1024);
+
+			int num_read = fread(block_buffer, PFS_BLOCK_SIZE * 1024, 1, pfs_file);
+			cout << "num read:" << num_read <<endl;
+			cout << "block buffer" << block_buffer << endl;
+			sock->send(block_buffer, PFS_BLOCK_SIZE * 1024);
+		}
+		fclose (pfs_file);
+	}
+	else
+		cerr << "Reading from file which does not exist!\n";
+} 
+void execFunc_write  ( TCPSocket * sock, string arguments ){
+		  string file_name = nextToken(arguments);
+  		  char echoBuffer[RCVBUFSIZE];
+  		  int recvMsgSize;
+		  FILE* pfs_file = fopen(file_name.c_str(), "w");
+		  if (pfs_file != NULL) {
+			  int block_offset = atoi(nextToken(arguments).c_str());
+			  int num_blocks = atoi(nextToken(arguments).c_str());
+			  long int byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
+			  cout << "message: " << "write" << ", filename: " <<file_name <<
+					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks <<endl; 
+			  if(fseek(pfs_file,byte_offset,SEEK_SET))
+				  cerr <<"fseek failed\n";
+	
+			string message; 
+			while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
+				message += string(echoBuffer);
+//				sock->send("ack",3); //FIXME
+			}
+//			cerr <<"msg" << message;
+			int num_write = fwrite(message.c_str(), message.size(), 1, pfs_file);
+			cout << "num write:" << num_write << endl;
+			cout << "message" << message << endl;
+//		 	sock->send("ack", 3); //FIXME
+			fclose (pfs_file);
+		  }
+		  else
+			  cerr << "Reading from file which does not exist!\n";
+	
+
+} 
+void execFunc_delete ( TCPSocket * sock, string arguments ){ }
+
+
 

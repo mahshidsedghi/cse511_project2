@@ -24,9 +24,9 @@
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
 
-#include "data_types.hh"
+#include "mt_data_types.hh"
 
-#define servAddress 127.0.0.1
+#define servAddress "127.0.0.1"
 #define servPort 1234
 
 const int RCVBUFSIZE = 64;
@@ -140,7 +140,7 @@ string execFunc_create(string arguments){
 	file_recipe.stripeWidth = atoi(stripe_w_str.c_str()); 
 
 	for (int i = 0; i < atoi(stripe_w_str.c_str()); i++){
-		file_recipe.stripeMask.set(i); //FIXME 
+		file_recipe.stripeMask.set(i); //FIXME decide in which servers we should stripe the file  
 		
 		// create a file in each server 
 		string command("create "+ filename); 
@@ -171,9 +171,9 @@ string execFunc_create(string arguments){
 	}
 
 	// put file_recipe in a table 
-	FileEntry fentry(file_name, file_recipe);
+	fileEntry fentry(filename, file_recipe);
 	
-	file_table.insert(file_name, fentry); 
+	general_file_table.insert(pair<string, fileEntry>(filename, fentry)); 
 
 	if (!success)
 		return string("failed");
@@ -184,19 +184,12 @@ string execFunc_open(string arguments){
 	string filename = nextToken(arguments); 
 	string mode     = nextToken(arguments); 
 
-	// open the file 
+	fileRecipe f_recipe; 
+	map<string, fileEntry>::iterator it; 
+	it = general_file_table.find(filename); 
+	if ( it != general_file_table.end()) f_recipe = it->second.file_recipe; 
 
-	fileRecipe file_recipe; 
-	file_recipe.stripeWidth = 3; // FIXME 
-	file_recipe.stripeMask.set(0); // FIXME
-	file_recipe.stripeMask.set(1);  // FIXME 
-	file_recipe.stripeMask.set(2); // FIXME 
-	
-	string ret_str = static_cast<ostringstream*>( &(ostringstream() << file_recipe.stripeWidth ))->str(); 
-	ret_str += " "; 
-	ret_str += "11100"; //file_recipe.stripeMask;  // FIXME 
-
-	return ret_str; 
+	return f_recipe.toString(); 
 }
 
 void execFunc_close(string arguments){
