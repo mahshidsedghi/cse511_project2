@@ -15,6 +15,9 @@ using namespace std;
 #define  metadataAddress "130.203.59.130" //ganga
 #define  metadataPort 1234
 
+#define  fileserverAddress "130.203.59.130" //ganga
+//#define  fileserverPort 1234
+#define  fileserverPort 1235
 
 #define ONEKB 1024
 
@@ -278,44 +281,10 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		 
 		
 	}	
-
-/*
-	// FIXME read addresses and ports from tables   
-	string servAddress = fileserverAddress; 
-	unsigned short servPort = fileserverPort;  
-		
-	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB);  
-	// read file_name offset nbyte 
-	string command = string("write ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 ");
-	command += string((char*)buf); 
-	command += "\0"; 
- 
-	string response; 
-	try{
-		TCPSocket sock(servAddress, servPort); 
-		sock.send(command.c_str(), command.length()); 
-		
-
-		// FIXME	
-		//char echoBuffer[RCVBUFSIZE+1];
-		//int recvMsgSize = 0; 
-		// should receive ack  
-		//while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
-		//	echoBuffer[recvMsgSize]='\0'; 
-		//	response += echoBuffer;
-		//	cout << "res: " << echoBuffer << endl;  
-		//}
-		
-	}catch(SocketException &e){
-		cerr << e.what() << endl; 
-		exit(1); 
-	}
-
-	cout <<"response received: " <<  response << endl;  // should be ack 
-*/
 	return nbyte; 
-} 
-int pfs_close(int filedes){
+}
+
+int pfs_close(int filedes) {
 	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes);
 
@@ -352,7 +321,7 @@ int pfs_close(int filedes){
 
 	return ofdt_close_file(filedes); 	
 } 
-int pfs_delete(const char * file_name){ 
+int pfs_delete(const char * file_name) { 
 	string servAddress = metadataAddress; 
 	unsigned short servPort = metadataPort; 
 	
@@ -397,30 +366,30 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 }
 
 int main(int argc, char *argv[]) {
-		//	if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
-		//  	cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
-		//	if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
-		//	cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
+	//if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
+	// cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
+	//if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
+	//cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
+	//ofdt_print_all(); 
+	int ifdes; 
+	//ifdes = pfs_open("golabi.txt", 'r');  
+	//cout << "open file: " << ifdes << endl;  
+	char * buf =  (char *)malloc(1*ONEKB);
+	//strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
+	//pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
+	//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+	//cout << buf << endl; 
+ 	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
+	//cout << buf << endl; 
+ 	size_t nread = pfs_create("baghali.txt",1);
+	cout <<"nread:" << nread << endl; 
 
-		//	ofdt_print_all(); 
+	blockT b1;
+	b1.file_name = "baghali.txt";
+	strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
+	size_t nwrite = disk_cache.writeToFileServer(b1,(string)fileserverAddress,(size_t)fileserverPort); //gives seg fault
+	cout <<"nwrite:" << nwrite << endl; 
 
-
-		int ifdes; 
-//		ifdes = pfs_open("golabi.txt", 'r');  
-//		cout << "open file: " << ifdes << endl;  
-
-		char * buf =  (char *)malloc(1*ONEKB);
-
-		//	strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
-		//	pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
-
-		//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		//cout << buf << endl; 
-	 	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
-		//cout << buf << endl; 
-	 	size_t nread = pfs_create("baghali.txt",1);
-		cout << nread << endl; 
-	
 	return 0;
 }
 

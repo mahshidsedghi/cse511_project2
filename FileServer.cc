@@ -160,8 +160,8 @@ void HandleTCPClient(TCPSocket *sock) {
 			int num_write = fwrite(message.c_str(), message.size(), 1, pfs_file);
 			cout << "num write:" << num_write << endl;
 			cout << "message" << message << endl;
-//		 	  sock->send("ack", 3); //FIXME
-			  fclose (pfs_file);
+//		 	sock->send("ack", 3); //FIXME
+			fclose (pfs_file);
 		  }
 		  else
 			  cerr << "Reading from file which does not exist!\n";
