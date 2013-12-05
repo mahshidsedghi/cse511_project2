@@ -188,23 +188,20 @@ blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std
 
 //int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
 int writeToFileServer(blockT b, std::string IP, size_t port_number) {
-	//make a message and send to server
-/*
         // FIXME read addresses and ports from tables
         string servAddress = fileserverAddress;
         unsigned short servPort = fileserverPort;
 
-        int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB);
         // read file_name offset nbyte
-        string command = string("write ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 ");
-        command += string((char*)buf);
+	// int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); //FIXME by that magic formula
+	int block_offset = 0; //FIXME should be removed. it is only for test
+        string command = string("write ") + b.file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 ");
+        command += string(b.data);
         command += "\0";
-
         string response;
-        try{
+        try {
                 TCPSocket sock(servAddress, servPort);
                 sock.send(command.c_str(), command.length());
-
 
                 // FIXME
                 //char echoBuffer[RCVBUFSIZE+1];
@@ -215,15 +212,12 @@ int writeToFileServer(blockT b, std::string IP, size_t port_number) {
                 //      response += echoBuffer;
                 //      cout << "res: " << echoBuffer << endl;
                 //}
-
-        }catch(SocketException &e){
+        }
+	catch(SocketException &e) {
                 cerr << e.what() << endl;
                 exit(1);
         }
-
         cout <<"response received: " <<  response << endl;  // should be ack
-*/
-	
 	return 0;
 }
 
