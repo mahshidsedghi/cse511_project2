@@ -274,7 +274,8 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		bt->status = 'D'; 
 		for (int j = off_start; j <= off_end; j++) {
 			bt->data[j] = ((char*)buf)[i - block_offset + j];
-		} 
+		}
+		 
 		
 	}	
 

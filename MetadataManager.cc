@@ -26,6 +26,9 @@
 
 #include "data_types.hh"
 
+#define servAddress 127.0.0.1
+#define servPort 1234
+
 const int RCVBUFSIZE = 64;
 
 void HandleTCPClient(TCPSocket *sock);     // TCP client handling function
@@ -127,15 +130,54 @@ void *ThreadMain(void *clntSock) {
 }
 
 string execFunc_create(string arguments){
+
+	bool success = true; 
+
 	string filename     = nextToken(arguments); 
 	string stripe_w_str = nextToken(arguments); 
 
-	//cout << "create "; 
-	//cout << filename << " " ;  
-	//cout << stripe_w_str << endl; 
+	fileRecipe file_recipe; 
+	file_recipe.stripeWidth = atoi(stripe_w_str.c_str()); 
 
-	// Implement creating a file 
+	for (int i = 0; i < atoi(stripe_w_str.c_str()); i++){
+		file_recipe.stripeMask.set(i); //FIXME 
+		
+		// create a file in each server 
+		string command("create "+ filename); 
+		string response;
+		try{
+			TCPSocket sock(servAddress, servPort);
+ 			sock.send(command.c_str(), command.length()); 
 	
+			char echoBuffer[RCVBUFSIZE+1]; 
+			int recvMsgSize = 0;
+		
+			// should receive a lot of data from metadata manager 
+			if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+				cerr << "unable to recv "; 
+				response="nack"; 
+			}else {
+				echoBuffer[recvMsgSize]='\0'; 
+				response = echoBuffer; 
+			}
+		}catch(SocketException &e) {
+    		cerr << e.what() << endl;
+    		response="nack"; 
+  		}
+		
+		if (response == "nack") 
+			success = false; 
+
+	}
+
+	// put file_recipe in a table 
+	FileEntry fentry(file_name, file_recipe);
+	
+	file_table.insert(file_name, fentry); 
+
+	if (!success)
+		return string("failed");
+
 	return string("success"); 
 }
 string execFunc_open(string arguments){

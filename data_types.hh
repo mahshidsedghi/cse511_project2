@@ -28,4 +28,5 @@ struct fileRecipe{
 		stripeWidth = 0;  
 	}
 }; 
+
 #endif
