@@ -32,7 +32,7 @@
 
 using namespace std;
 
-const int RCVBUFSIZE = 32;
+const int RCVBUFSIZE = 64;
 
 void HandleTCPClient(TCPSocket *sock);     // TCP client handling function
 void *ThreadMain(void *arg);               // Main program of a thread  
@@ -104,6 +104,9 @@ void HandleTCPClient(TCPSocket *sock) {
 	  }
 	  else if (toLower(command) == "write") {
       		execFunc_write(sock, message); 
+	  }
+	  else if (toLower(command) == "delete"){
+			execFunc_delete(sock, message); 
 	  }
 	  else {
 			cout << "unknown command" << endl; 		
@@ -201,7 +204,10 @@ void execFunc_write  ( TCPSocket * sock, string arguments ){
 	
 
 } 
-void execFunc_delete ( TCPSocket * sock, string arguments ){ }
+void execFunc_delete ( TCPSocket * sock, string arguments ){
+
+
+}
 
 
 

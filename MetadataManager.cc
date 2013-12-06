@@ -205,10 +205,51 @@ void execFunc_read(string arguments){
 void execFunc_write(string arguments){
 	// I'm not sure if we need this or not 
 }
-void execFunc_delete(string arguments){
-	string filename = nextToken(arguments); 
-	// delete file 	
-	//cout << filename << endl; 
+string execFunc_delete(string arguments){
+	string filename     = nextToken(arguments); 
+	map<string, fileEntry>::iterator it; 
+	it = general_file_table.find(filename); 
+	if ( it == general_file_table.end()) return "nack"; 
+
+	bitset<NUM_FILE_SERVERS> stripmask = it->second.file_recipe.stripeMask; //FIXME decide in which servers we should stripe the file  
+	
+	string response; 
+	for (int i = 0; i < NUM_FILE_SERVERS; i++){
+		
+		if (!stripmask.test(i)) continue; 
+
+		// create a file in each server 
+		string command("delete "+ filename); 
+		try{
+			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
+ 			sock.send(command.c_str(), command.length()); 
+	
+			char echoBuffer[RCVBUFSIZE+1]; 
+			int recvMsgSize = 0;
+		
+			// should receive a lot of data from metadata manager 
+			if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+				cerr << "unable to recv "; 
+				response="nack"; 
+			}else {
+				echoBuffer[recvMsgSize]='\0'; 
+				response = echoBuffer; 
+			}
+		}catch(SocketException &e) {
+    		cerr << e.what() << endl;
+    		response="nack"; 
+  		}
+		
+
+	}
+
+	
+	general_file_table.erase(filename); 
+
+	if (toLower(response) == "nack")
+		return string("failed");
+
+	return string("success"); 
 }
 void execFunc_fstat(string argumnets){
 	// not idea right now. 
