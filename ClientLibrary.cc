@@ -28,7 +28,6 @@ void corresponding_server(size_t block_offset, int strip_width, string &server_a
 	int server_number 		 = ( block_offset / STRIP_SIZE) % strip_width; 
 	offset_within = ((block_offset / STRIP_SIZE) / strip_width) * STRIP_SIZE + (block_offset % STRIP_SIZE); 
 
-	cout << "block#" << block_offset << " server#" << server_number << " offset within server: " << offset_within << endl; 
  
 	// FIXME: no idea how to make this general  
 	switch(server_number){
@@ -55,6 +54,8 @@ void corresponding_server(size_t block_offset, int strip_width, string &server_a
 
 	}
 	
+	cout << "block#" << block_offset << " server#" << server_number << " offset within server: " << offset_within;  
+	cout << " " << server_address << " " << server_port << endl; 
  
 }
 
@@ -220,19 +221,21 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		else {
 			string server_address; 
 			int server_port; 
-			size_t within_offset; 
-			corresponding_server(i, fr->stripeWidth, server_address, server_port, within_offset); // call by reference  of server_address, server_port, within_offset 
+			size_t within_offset;
 			 
+			corresponding_server(i, fr->stripeWidth, server_address, server_port, within_offset); // call by reference  of server_address, server_port, within_offset 
 			*bt = disk_cache.readFromFileServer(file_name, within_offset, server_address, server_port); 
 			
-			disk_cache.insertSingleBlockIntoCache(*bt); 
+			//disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
-
-		bt->status = 'D'; 
-		for (int j = off_start; j <= off_end; j++) {
-			bt->data[j] = ((char*)buf)[i - block_offset + j];
+		if (bt != NULL){
+			bt->status = 'D';
+			for (int j = off_start; j <= off_end; j++) {
+				bt->data[j] = ((char*)buf)[i - block_offset + j];
+			}
+		}else{ 
+			return 0; 
 		}
-		 
 		
 	}	
 	return nbyte; 
@@ -342,18 +345,20 @@ int main(int argc, char *argv[]) {
 	string file_name = "test_file.txt"; 
 	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
 
-
+	cout << "---------------------------------------------------------" << endl; 
 	// TEST OPEN 
-//	int fdes = pfs_open(file_name.c_str(), 'r');  
-//	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
+	int fdes = pfs_open(file_name.c_str(), 'r');  
+	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
 
-/*
+
+	cout << "---------------------------------------------------------" << endl; 
 	// TEST WRITE 
 	char * buf =  (char *)malloc(1*ONEKB);
 	strcpy(buf , "this line was written by client on the server using writeToFileServerFunction");
 	int hit; 
 	pfs_write(fdes, (void *)buf, 1*ONEKB, 0, 0); 
-	
+	cout << "---------------------------------------------------------" << endl; 
+/*	
 	// TEST READ 
 	strcpy(buf , "something else"); 
 	pfs_read(fdes, (void *)buf, 1*ONEKB, 0, 0); 
@@ -361,7 +366,7 @@ int main(int argc, char *argv[]) {
 
 
 	// TEST DELETE 
-	if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
+//	if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
 	return 0;
 }
 

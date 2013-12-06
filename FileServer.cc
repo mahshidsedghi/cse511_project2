@@ -131,7 +131,7 @@ void *ThreadMain(void *clntSock) {
 }
 
 void execFunc_create ( TCPSocket * sock, string arguments ){
-	string file_name = nextToken(arguments);
+	string file_name = trim(nextToken(arguments));
 	struct stat st;
 	if (stat(file_name.c_str(),&st) == 0 ){
 		cout << "Trying to create file: " << file_name << " which already exists\n";
@@ -151,11 +151,12 @@ void execFunc_create ( TCPSocket * sock, string arguments ){
 
 } 
 void execFunc_read   ( TCPSocket * sock, string arguments ){
- 	string file_name = nextToken(arguments);
+ 	string file_name = trim(nextToken(arguments));
+	cout << file_name << endl; 
 	FILE* pfs_file = fopen(file_name.c_str(), "r");
 	if (pfs_file != NULL) {
-		int block_offset = atoi(nextToken(arguments).c_str());
-		int num_blocks = atoi(nextToken(arguments).c_str());
+		int block_offset = atoi(trim(nextToken(arguments)).c_str());
+		int num_blocks = atoi(trim(nextToken(arguments)).c_str());
 		long int byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
 		cout << "message: " << "read" << ", filename: " <<file_name <<
 				", block_offset: " << block_offset << ", num_blocks: "<< num_blocks << endl;
@@ -175,13 +176,13 @@ void execFunc_read   ( TCPSocket * sock, string arguments ){
 		cerr << "Reading from file which does not exist!\n";
 } 
 void execFunc_write  ( TCPSocket * sock, string arguments ){
-		  string file_name = nextToken(arguments);
+		  string file_name = trim(nextToken(arguments));
   		  char echoBuffer[RCVBUFSIZE];
   		  int recvMsgSize;
 		  FILE* pfs_file = fopen(file_name.c_str(), "w");
 		  if (pfs_file != NULL) {
-			  int block_offset = atoi(nextToken(arguments).c_str());
-			  int num_blocks = atoi(nextToken(arguments).c_str());
+			  int block_offset = atoi(trim(nextToken(arguments)).c_str());
+			  int num_blocks = atoi(trim(nextToken(arguments)).c_str());
 			  long int byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
 			  cout << "message: " << "write" << ", filename: " <<file_name <<
 					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks <<endl; 
@@ -207,7 +208,7 @@ void execFunc_write  ( TCPSocket * sock, string arguments ){
 
 } 
 void execFunc_delete ( TCPSocket * sock, string arguments ){
-	string file_name = nextToken(arguments);
+	string file_name = trim(nextToken(arguments));
 	struct stat st;
 	if (stat(file_name.c_str(),&st) == 0 ){
 		if(remove( file_name.c_str() ) != 0 ) {

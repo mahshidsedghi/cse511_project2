@@ -3,13 +3,6 @@
 
 using namespace std;
 
-//#define  metadataAddress "127.0.0.1" 
-#define  metadataAddress "130.203.59.130" //ganga
-#define  metadataPort 1234
-//#define  fileserverAddress "130.203.40.19"
-#define  fileserverAddress "130.203.59.130" //ganga
-//#define  fileserverPort 1234
-#define  fileserverPort 1235
 
 size_t ClientCache::clientID = 0;
 
@@ -162,8 +155,8 @@ blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, st
 	else {
 		cout << "the block miss in the cache" << endl; 
 		// FIXME read addresses and ports from tables   
-		string servAddress = fileserverAddress;  
-		unsigned short servPort = fileserverPort; 
+		string servAddress = IP;  
+		unsigned short servPort = port_number; 
 		
 		// read file_name offset nbyte 
 		string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
@@ -202,9 +195,8 @@ blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, st
 
 //int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
 int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number) {
-        // FIXME read addresses and ports from tables
-        string servAddress = fileserverAddress;
-        unsigned short servPort = fileserverPort;
+        string servAddress = IP;
+        unsigned short servPort = port_number;
 
         // read file_name offset nbyte
 	// int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); //FIXME by that magic formula
