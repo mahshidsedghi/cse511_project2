@@ -24,8 +24,38 @@ ClientCache disk_cache;
 
 
 
-void corresponding_server(size_t block_offset, string &server_address, int &server_port){
+void corresponding_server(size_t block_offset, int strip_width, string &server_address, int &server_port, size_t &offset_within){
+	int server_number 		 = ( block_offset / STRIP_SIZE) % strip_width; 
+	offset_within = ((block_offset / STRIP_SIZE) / strip_width) * STRIP_SIZE + (block_offset % STRIP_SIZE); 
+
+	cout << "block#" << block_offset << " server#" << server_number << " offset within server: " << offset_within << endl; 
+ 
+	// FIXME: no idea how to make this general  
+	switch(server_number){
+		case 0: 
+			server_address = SERVER0_ADDR; 
+			server_port    = SERVER0_PORT; 
+			break; 
+		case 1: 
+			server_address = SERVER1_ADDR; 
+			server_port    = SERVER1_PORT; 
+			break; 
+		case 2: 
+			server_address = SERVER2_ADDR; 
+			server_port    = SERVER2_PORT; 
+			break; 
+		case 3: 
+			server_address = SERVER3_ADDR; 
+			server_port    = SERVER3_PORT; 
+			break; 
+		case 4: 
+			server_address = SERVER4_ADDR; 
+			server_port    = SERVER4_PORT; 
+			break; 
+
+	}
 	
+ 
 }
 
 // Library functions 
@@ -141,9 +171,10 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		else {
 			string server_address; 
 			int server_port; 
-			corresponding_server(i, server_address, server_port); // call by reference 
+			size_t within_offset; 
+			corresponding_server(i, fr->stripeWidth, server_address, server_port, within_offset); // call by reference  of server_address, server_port, within_offset 
 			 
-			*bt = disk_cache.readFromFileServer(file_name, i, server_address, server_port); 
+			*bt = disk_cache.readFromFileServer(file_name, within_offset, server_address, server_port); 
 			
 			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
@@ -158,7 +189,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
 	
-	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
+	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes); 
 	string file_mode = ofdt_fetch_mode   (filedes); 
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
@@ -186,7 +217,12 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 			bt = disk_cache.getBlockFromCache(file_name, i);
 		}
 		else {
-			*bt = disk_cache.readFromFileServer(file_name, i, string("130.203.40.19"), 1234); 
+			string server_address; 
+			int server_port; 
+			size_t within_offset; 
+			corresponding_server(i, fr->stripeWidth, server_address, server_port, within_offset); // call by reference  of server_address, server_port, within_offset 
+			 
+			*bt = disk_cache.readFromFileServer(file_name, within_offset, server_address, server_port); 
 			
 			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
@@ -274,38 +310,50 @@ int pfs_delete(const char * file_name) {
 	return 0; 
 }
 int pfs_fstat(int filedes, struct pfs_stat * buf){
-	string name = ofdt_fetch_name(filedes);
-	// send name to metadata manager 
-	// receive fstat 
-	// put in buffer 
 	return 0; // what? 
 
 }
 
 int main(int argc, char *argv[]) {
-	//if (pfs_create("khoshgel", 4) > 0)  cout << "successful creation of khoshgel! " << endl; 
 	// cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
 	//if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
 	//cout << "open file: " << pfs_open("nanaz", 'r') << endl; 
 	//ofdt_print_all(); 
-	int ifdes; 
 	//ifdes = pfs_open("golabi.txt", 'r');  
 	//cout << "open file: " << ifdes << endl;  
-	char * buf =  (char *)malloc(1*ONEKB);
 	//strcpy(buf, "soft kitty, warm kitty little ball of fur happy kitty sleepy kitty purr purr purr"); 	
 	//pfs_write(ifdes, (void *)buf, 1*ONEKB, 0, 0); 
 	//ssize_t nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
 	//cout << buf << endl; 
  	//nread = pfs_read(ifdes, (void *)buf, 1*ONEKB , 0, 0);
 	//cout << buf << endl; 
- 	int success = pfs_create("googol.txt",1);
-	cout <<"successful creation: " << success << endl; 
+ 	//int success = pfs_create("googol.txt",1);
+	//cout <<"successful creation: " << success << endl; 
 
-	blockT b1;
-	b1.file_name = "baghali.txt";
-	strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
+	//blockT b1;
+	//b1.file_name = "baghali.txt";
+	//strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
 //	size_t nwrite = disk_cache.writeToFileServer(b1,(string)fileserverAddress,(size_t)fileserverPort); //gives seg fault
 //	cout <<"nwrite:" << nwrite << endl; 
+
+
+	// TEST CREATE 
+	string file_name = "test_file.txt"; 
+	if (pfs_create(file_name.c_str(), 4) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
+
+	// TEST OPEN 
+	int fdes = pfs_open(file_name.c_str(), 'r');  
+	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
+
+	// TEST WRITE 
+	char * buf =  (char *)malloc(1*ONEKB);
+	strcpy(buf , "this line was written by client on the server using writeToFileServerFunction");
+	int hit; 
+	/*int nwrite = */pfs_write(fdes, (void *)buf, 1*ONEKB, 0, 0); 
+	
+	// TEST READ 
+	strcpy(buf , "something else"); 
+	pfs_read(fdes, (void *)buf, 1*ONEKB, 0, 0); 
 
 	return 0;
 }
