@@ -113,7 +113,7 @@ void HandleTCPClient(TCPSocket *sock) {
   	else if ( command == "write"  ) 
 		execFunc_write  (recvCommand); 
   	else if ( command == "delete" )
-		execFunc_delete (recvCommand); 
+		response = execFunc_delete (recvCommand); 
   	else if ( command == "fstat"  )
 		execFunc_fstat  (recvCommand); 
 

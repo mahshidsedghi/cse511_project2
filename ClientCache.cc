@@ -65,7 +65,7 @@ void* ClientCache::flushingFunc(){
 				it->second.status = 'C';
 			}
 	}
-	return 0;
+	return 0; ;
 }
 
 void ClientCache::insertSingleBlockIntoCache(blockT b) {

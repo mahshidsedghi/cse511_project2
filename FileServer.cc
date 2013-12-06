@@ -94,6 +94,7 @@ void HandleTCPClient(TCPSocket *sock) {
   string message;
   string command;
   if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
+	  echoBuffer[recvMsgSize]='\0'; 
 	  message = echoBuffer;
 	  command = nextToken(message);
 	  if (toLower(command) == "create") {
@@ -189,7 +190,8 @@ void execFunc_write  ( TCPSocket * sock, string arguments ){
 	
 			string message; 
 			while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
-				message += string(echoBuffer);
+				echoBuffer[recvMsgSize] = '\0'; 		
+			 	message += string(echoBuffer);
 //				sock->send("ack",3); //FIXME
 			}
 //			cerr <<"msg" << message;
@@ -208,7 +210,7 @@ void execFunc_delete ( TCPSocket * sock, string arguments ){
 	string file_name = nextToken(arguments);
 	struct stat st;
 	if (stat(file_name.c_str(),&st) == 0 ){
-		if(remove( "myfile.txt" ) != 0 ) {
+		if(remove( file_name.c_str() ) != 0 ) {
 			cerr << "Failed creating the file on the server!\n";
 			sock->send("nack", 4); 	
 		}else {
