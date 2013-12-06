@@ -28,7 +28,7 @@ AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_ty
 
 all: ClientLibrary MetadataManager FileServer  
 
-ClientLibrary: ClientLibrary.cc $(AUX) $(AUX_H)
+ClientLibrary: ClientLibrary.cc ClientCache.cc $(AUX) $(AUX_H)
 	$(CXX) $(CXXFLAGS) -o  ClientLibrary ClientLibrary.cc ClientCache.cc $(AUX) -lpthread
 
 MetadataManager: MetadataManager.cc MetadataManager.hh $(AUX) $(AUX_H) 

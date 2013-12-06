@@ -361,7 +361,7 @@ int main(int argc, char *argv[]) {
 
 
 	// TEST DELETE 
-	pfs_delete(file_name.c_str()); 
+	if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
 	return 0;
 }
 
