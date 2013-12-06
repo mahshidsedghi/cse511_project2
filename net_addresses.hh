@@ -1,14 +1,22 @@
 #ifndef __NET_ADDRESSES_H__ 
 #define __NET_ADDRESSES_H__
 
-#define SERVER1_ADDR 127.0.0.1
-#define SERVER2_ADDR 127.0.0.1
-#define METADATA_ADDR 127.0.0.1
-#define FILE_SERVER_PORT 1234
-#define METADATA_PORT 2345 
+#define PUMA_ADDR 		"130.203.40.19"
+#define GANGA_ADDR 		"127.0.0.1"
+#define MAMBERAMO_ADDR 	"127.0.0.1"
 
-#define PUMA_ADDR 127.0.0.1
-#define GANGA_ADDR 127.0.0.1
-#define MAMBERAMO_ADDR 127.0.0.1
+#define SERVER0_ADDR 	"127.0.0.1"
+#define SERVER0_PORT 	1234
+#define SERVER1_ADDR 	"127.0.0.1"
+#define SERVER1_PORT 	1234
+#define SERVER2_ADDR 	"127.0.0.1"
+#define SERVER2_PORT 	1234
+#define SERVER3_ADDR 	"127.0.0.1"
+#define SERVER3_PORT 	1234
+#define SERVER4_ADDR 	"127.0.0.1"
+#define SERVER4_PORT 	1234
+
+#define METADATA_ADDR 	"127.0.0.1"
+#define METADATA_PORT 	2345 
 
 #endif 

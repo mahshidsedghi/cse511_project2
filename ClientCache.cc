@@ -102,14 +102,27 @@ void ClientCache::showUsedSpace() {
 		cout << "LBA_" << it->first << "[0]: " << it->second.data[0] << endl;
 }
 
-bool ClientCache::lookupBlockInCache(LBA block_ID) {
+bool ClientCache::lookupBlockInCache(string file_name, size_t block_offset) {
+	tr1::hash<string> str_hash;
+	size_t file_ID = str_hash(file_name);
+	file_ID = file_ID << 22;
+	size_t temp_offset = (block_offset & int(pow(2.0,22.0)-1));
+	LBA block_ID = file_ID | temp_offset;
+
 	if(usedSpace.find(block_ID) != usedSpace.end()) //will it search the whole bucket?
 		return true;
 	else
 		return false;
 }
 
-blockT* ClientCache::getBlockFromCache(LBA block_ID) {
+blockT* ClientCache::getBlockFromCache(string file_name, size_t block_offset) {
+
+	tr1::hash<string> str_hash;
+	size_t file_ID = str_hash(file_name);
+	file_ID = file_ID << 22;
+	size_t temp_offset = (block_offset & int(pow(2.0,22.0)-1));
+	LBA block_ID = file_ID | temp_offset;
+
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	it = usedSpace.find(block_ID);
 	if(it != usedSpace.end()) //will it search the whole bucket?
@@ -129,25 +142,21 @@ void ClientCache::showCacheStatus()
 	cout << "Client #"<< clientID << " Used Space Size: " << usedSpace.size() << endl;
 }
 
-blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std::string IP, int port_number) {
-//	blockT b1;
-//	return b1;
-	// LBA block_ID (file_name, (size_t)block_offset);
+blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, std::string IP, int port_number) {
 	// create logical block ID + server 
-
 	tr1::hash<string> str_hash;
 	size_t file_ID = str_hash(file_name);
 	file_ID = file_ID << 22;
 	size_t temp_offset = (block_offset & int(pow(2.0,22.0)-1));
 	LBA block_ID = file_ID | temp_offset;
 
-	bool hit = lookupBlockInCache(block_ID); 
+	bool hit = lookupBlockInCache(file_name, block_ID); 
 	
 	string response;
 
 	if (hit == true){
 		cout << "the block hit in the cache " << endl; 
-		blockT * bt = getBlockFromCache(block_ID); // FIXME get multiple blocks 
+		blockT * bt = getBlockFromCache(file_name, block_ID); // FIXME get multiple blocks 
 		response =  bt->data;
 	}
 	else {
@@ -176,6 +185,11 @@ blockT ClientCache::readFromFileServer(char* file_name, size_t block_offset, std
 			}
 			blockT b1;
 			strcpy(b1.data,response.substr(0,strlen(b1.data)).c_str()); 
+			b1.blockAdr = block_ID;
+			b1.status = 'C'; 
+			b1.file_name = file_name; 
+			b1.block_offset = block_offset;
+ 
 			return b1;
 		}
 		catch(SocketException &e){

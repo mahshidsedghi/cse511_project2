@@ -2,6 +2,7 @@
 #include "PracticalSocket.hh"  // For Socket and SocketException
 #include "ClientCache.hh"
 #include "FileDesc.hh"
+#include "net_addresses.hh"
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
 #include <string.h>
@@ -12,12 +13,6 @@
  
 using namespace std;
 
-#define  metadataAddress "127.0.0.1" //130.203.59.130" //ganga
-#define  metadataPort 1235
-
-#define  fileserverAddress "127.0.0.1" // 130.203.59.130" //ganga
-//#define  fileserverPort 1234
-#define  fileserverPort 1234
 
 #define ONEKB 1024
 
@@ -26,6 +21,14 @@ using namespace std;
 
 
 ClientCache disk_cache;
+
+
+
+void corresponding_server(size_t block_offset, string &server_address, int &server_port){
+	
+}
+
+// Library functions 
 
 int pfs_create(const char * file_name, int stripe_width){
 //	string servAddress = metadataAddress; 
@@ -42,8 +45,8 @@ int pfs_create(const char * file_name, int stripe_width){
 
 	string response; 	
 	try{
-		string servAddress = metadataAddress;  //mahshid
-		unsigned short servPort = metadataPort; //mahshid
+		string servAddress = METADATA_ADDR; 
+		unsigned short servPort = METADATA_PORT;
 		TCPSocket sock(servAddress, servPort);
  		sock.send(command.c_str(), commandLen); 
 	
@@ -70,8 +73,8 @@ int pfs_create(const char * file_name, int stripe_width){
 }
 
 int pfs_open(const char * file_name, const char mode){
-	string servAddress = metadataAddress; 
-	unsigned short servPort = metadataPort; 
+	string servAddress = METADATA_ADDR;  
+	unsigned short servPort = METADATA_PORT; 
 	
 	string command ("open "); 
 	command += file_name;  
@@ -120,36 +123,28 @@ int pfs_open(const char * file_name, const char mode){
 }
 ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cache_hit){ 
 
-	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
+	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes); 
 	string file_mode = ofdt_fetch_mode   (filedes); 
+	
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
-	//int n_blocks = end_block_offset - block_offset + 1 ;  
 	
 	string response(""); 
 
 	for (int i = block_offset; i <= end_block_offset; i++){
-		tr1::hash<string> str_hash;
-		size_t file_ID = str_hash(file_name);
-		file_ID = file_ID << 22;
-		size_t temp_offset = (i & int(pow(2,22)-1));
-		LBA block_ID = file_ID | temp_offset;
-
-		bool hit = disk_cache.lookupBlockInCache(block_ID);
+		bool hit = disk_cache.lookupBlockInCache(file_name, i);
 		blockT * bt;  
 		if (hit == true) {
-			bt = disk_cache.getBlockFromCache(block_ID);
+			bt = disk_cache.getBlockFromCache(file_name, i);
 		}
 		else {
-//			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, "130.203.40.19", 1234); 
-			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), i, "130.203.40.19", 1234); //mahshid changed this
+			string server_address; 
+			int server_port; 
+			corresponding_server(i, server_address, server_port); // call by reference 
+			 
+			*bt = disk_cache.readFromFileServer(file_name, i, server_address, server_port); 
 			
-			bt->blockAdr = block_ID; 
-			bt->status = 'C'; 
-			bt->file_name = file_name; 
-			bt->block_offset = i; 
-	
 			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
 		response += bt->data; 
@@ -159,75 +154,6 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 
 	strcpy((char *)buf, response.substr(off_first, nbyte).c_str());  
 		
-	
-
-/*
-	// LBA block_ID (file_name, (size_t)block_offset);
-	// create logical block ID + server 
-	
-	tr1::hash<string> str_hash;
-	size_t file_ID = str_hash(file_name);
-	file_ID = file_ID << 22;
-	size_t temp_offset = (block_offset & int(pow(2,22)-1));
-	LBA block_ID = file_ID | temp_offset;
-	
-	bool hit = disk_cache.lookupBlockInCache(block_ID); 
-	
-	string response; 
-
-	if (hit == true){
-		cout << "hit " << endl; 
-		blockT * bt = disk_cache.getBlockFromCache(block_ID); // FIXME get multiple blocks 
-		response =  bt->data;
-	}
-	else {
-		cout << "miss" << endl; 
-		// FIXME read addresses and ports from tables   
-		string servAddress = fileserverAddress;  
-		unsigned short servPort = fileserverPort; 
-		
-		// read file_name offset nbyte 
-		string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
-		command += " "; 
-		command +=  static_cast<ostringstream*>( &(ostringstream() << n_blocks ))->str();  
- 
-		string response;
-		try{
-			TCPSocket sock(servAddress, servPort); 
-			sock.send(command.c_str(), command.length()); 
-	
-			char echoBuffer[RCVBUFSIZE+1];
-			int recvMsgSize = 0; 
-		
-			// should receive a lot of data from metadata manager 
-			while ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) > 0 ){	
-				echoBuffer[recvMsgSize]='\0'; 
-				response += echoBuffer; 
-			}
-		
-		}catch(SocketException &e){
-			cerr << e.what() << endl; 
-			exit(1); 
-		}
-
-		// send to mahshid for search 
-		// get result and put in the buf 
-	
-		blockT bt;
-		strcpy(bt.data, response.c_str());  
-		bt.blockAdr = block_ID; 
-		bt.status = 'C'; 
-		bt.file_name = file_name; 
-		bt.block_offset = block_offset; 
-	
-		disk_cache.insertSingleBlockIntoCache(bt); 
-	
-	} 
-		
-	*/
-
-	
-
 	return nbyte; // FIXME: if nbytes read is less than available bytes  
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
@@ -254,25 +180,14 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		else
 			 off_start = 0; 
 	
-		tr1::hash<string> str_hash;
-		size_t file_ID = str_hash(file_name);
-		file_ID = file_ID << 22;
-		size_t temp_offset = (i & int(pow(2,22)-1));
-		LBA block_ID = file_ID | temp_offset;
-
-		bool hit = disk_cache.lookupBlockInCache(block_ID);
+		bool hit = disk_cache.lookupBlockInCache(file_name, i);
 		blockT * bt;  
 		if (hit == true) {
-			bt = disk_cache.getBlockFromCache(block_ID);
+			bt = disk_cache.getBlockFromCache(file_name, i);
 		}
 		else {
-			*bt = disk_cache.readFromFileServer((char *)file_name.c_str(), block_ID, string("130.203.40.19"), 1234); 
+			*bt = disk_cache.readFromFileServer(file_name, i, string("130.203.40.19"), 1234); 
 			
-			bt->blockAdr = block_ID; 
-			//bt->status = 'D'; 
-			bt->file_name = file_name; 
-			bt->block_offset = i; 
-	
 			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
 
@@ -290,8 +205,8 @@ int pfs_close(int filedes) {
 	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes);
 
-	string servAddress = metadataAddress;  
-	unsigned short servPort = metadataPort; 
+	string servAddress = METADATA_ADDR;  
+	unsigned short servPort = METADATA_PORT; 
 	
 	string command ("close "); 
 	command += file_name;  
@@ -324,8 +239,8 @@ int pfs_close(int filedes) {
 	return ofdt_close_file(filedes); 	
 } 
 int pfs_delete(const char * file_name) { 
-	string servAddress = metadataAddress; 
-	unsigned short servPort = metadataPort; 
+	string servAddress = METADATA_ADDR; 
+	unsigned short servPort = METADATA_PORT; 
 	
 	string command ("delete "); 
 	command += file_name;  
@@ -389,8 +304,8 @@ int main(int argc, char *argv[]) {
 	blockT b1;
 	b1.file_name = "baghali.txt";
 	strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
-	size_t nwrite = disk_cache.writeToFileServer(b1,(string)fileserverAddress,(size_t)fileserverPort); //gives seg fault
-	cout <<"nwrite:" << nwrite << endl; 
+//	size_t nwrite = disk_cache.writeToFileServer(b1,(string)fileserverAddress,(size_t)fileserverPort); //gives seg fault
+//	cout <<"nwrite:" << nwrite << endl; 
 
 	return 0;
 }

@@ -19,15 +19,12 @@
 #include "StringFunctions.hh"
 #include "PracticalSocket.hh"  // For Socket, ServerSocket, and SocketException
 #include "MetadataManager.hh"
+#include "net_addresses.hh"
+#include "mt_data_types.hh"
 
 #include <iostream>           // For cout, cerr
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
-
-#include "mt_data_types.hh"
-
-#define servAddress "127.0.0.1"
-#define servPort 1234
 
 const int RCVBUFSIZE = 64;
 
@@ -35,15 +32,22 @@ void HandleTCPClient(TCPSocket *sock);     // TCP client handling function
 void *ThreadMain(void *arg);               // Main program of a thread  
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {                 // Test for correct number of arguments  
-    cerr << "Usage: " << argv[0] << " <Server Port> " << endl;
-    exit(1);
-  }
-
-  unsigned short echoServPort = atoi(argv[1]);    // First arg:  local port  
-
-  try {
-    TCPServerSocket servSock(echoServPort);   // Socket descriptor for server  
+		  
+	FileServerList[0].first  = SERVER0_ADDR;
+	FileServerList[0].second = SERVER0_PORT;
+	FileServerList[1].first  = SERVER1_ADDR;
+	FileServerList[1].second = SERVER1_PORT;
+	FileServerList[2].first  = SERVER2_ADDR;
+	FileServerList[2].second = SERVER2_PORT;
+	FileServerList[3].first  = SERVER3_ADDR;
+	FileServerList[3].second = SERVER3_PORT;
+	FileServerList[4].first  = SERVER4_ADDR;
+	FileServerList[4].second = SERVER4_PORT;
+	 
+	unsigned short servPort = METADATA_PORT;  
+  
+    try {
+     TCPServerSocket servSock(servPort);   // Socket descriptor for server  
   
     for (;;) {      // Run forever  
       // Create separate memory for client argument  
@@ -144,7 +148,7 @@ string execFunc_create(string arguments){
 		// create a file in each server 
 		string command("create "+ filename); 
 		try{
-			TCPSocket sock(servAddress, servPort);
+			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
  			sock.send(command.c_str(), command.length()); 
 	
 			char echoBuffer[RCVBUFSIZE+1]; 
