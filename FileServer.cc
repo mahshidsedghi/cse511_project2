@@ -205,8 +205,20 @@ void execFunc_write  ( TCPSocket * sock, string arguments ){
 
 } 
 void execFunc_delete ( TCPSocket * sock, string arguments ){
-
-
+	string file_name = nextToken(arguments);
+	struct stat st;
+	if (stat(file_name.c_str(),&st) == 0 ){
+		if(remove( "myfile.txt" ) != 0 ) {
+			cerr << "Failed creating the file on the server!\n";
+			sock->send("nack", 4); 	
+		}else {
+			cout << "File : " << file_name << " deleted on the server\n";
+			sock->send("ack", 3); 
+		}
+	}else {
+		cout << "Trying to delete file: " << file_name << " which doesn't exists\n"; 
+		sock->send("nack",4); 
+	}
 }
 
 

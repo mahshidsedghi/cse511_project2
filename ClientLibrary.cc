@@ -344,8 +344,8 @@ int main(int argc, char *argv[]) {
 
 
 	// TEST OPEN 
-	int fdes = pfs_open(file_name.c_str(), 'r');  
-	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
+//	int fdes = pfs_open(file_name.c_str(), 'r');  
+//	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
 
 /*
 	// TEST WRITE 
@@ -358,6 +358,10 @@ int main(int argc, char *argv[]) {
 	strcpy(buf , "something else"); 
 	pfs_read(fdes, (void *)buf, 1*ONEKB, 0, 0); 
 */
+
+
+	// TEST DELETE 
+	pfs_delete(file_name.c_str()); 
 	return 0;
 }
 
