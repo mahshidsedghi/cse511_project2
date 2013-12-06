@@ -19,6 +19,7 @@
 #include "PracticalSocket.hh"  // For Socket, ServerSocket, and SocketException
 #include "StringFunctions.hh"
 #include "FileServer.hh"
+
 #include <iostream>           // For cout, cerr
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
@@ -37,12 +38,9 @@ void HandleTCPClient(TCPSocket *sock);     // TCP client handling function
 void *ThreadMain(void *arg);               // Main program of a thread  
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {                 // Test for correct number of arguments  
-    cerr << "Usage: " << argv[0] << " <Server Port> " << endl;
-    exit(1);
-  }
 
-  unsigned short echoServPort = atoi(argv[1]);    // First arg:  local port  
+	
+  unsigned short echoServPort = SERVER0_PORT;    // First arg:  local port  
 
   try {
     TCPServerSocket servSock(echoServPort);   // Socket descriptor for server  

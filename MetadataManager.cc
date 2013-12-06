@@ -44,8 +44,9 @@ int main(int argc, char *argv[]) {
 	FileServerList[4].first  = SERVER4_ADDR;
 	FileServerList[4].second = SERVER4_PORT;
 	 
-	unsigned short servPort = METADATA_PORT;  
-  
+	unsigned short servPort = 1235; // METADATA_PORT;  
+ 
+	cout << "metadata is waiting on port " << servPort << endl;  
     try {
      TCPServerSocket servSock(servPort);   // Socket descriptor for server  
   

@@ -24,7 +24,7 @@ ifeq ($(shell uname),SunOS)
 endif
 
 AUX=PracticalSocket.cc  
-AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_types.hh mt_data_types.hh 
+AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_types.hh mt_data_types.hh net_addresses.hh 
 
 all: ClientLibrary MetadataManager FileServer  
 

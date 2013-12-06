@@ -78,11 +78,12 @@ int pfs_create(const char * file_name, int stripe_width){
 		string servAddress = METADATA_ADDR; 
 		unsigned short servPort = METADATA_PORT;
 		TCPSocket sock(servAddress, servPort);
+
+ 
  		sock.send(command.c_str(), commandLen); 
 	
 		char echoBuffer[RCVBUFSIZE+1]; 
 		int recvMsgSize = 0;
-		
 		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){ //do we expect to receive an ack?
 			cerr << "unable to read "; 
 			exit(1); 
@@ -91,8 +92,8 @@ int pfs_create(const char * file_name, int stripe_width){
 		echoBuffer[recvMsgSize]='\0'; 
 		response = echoBuffer; 
 	}catch(SocketException &e) {
-    		cerr << e.what() << endl;
-    		exit(1);
+    		cerr << "create: " << e.what() << endl;
+    		exit(1); 	
   	}
 
 	cout << response << endl; 
@@ -338,9 +339,10 @@ int main(int argc, char *argv[]) {
 
 
 	// TEST CREATE 
-	string file_name = "test_file.txt"; 
-	if (pfs_create(file_name.c_str(), 4) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
+	//string file_name = "test_file.txt"; 
+	//if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
 
+/*
 	// TEST OPEN 
 	int fdes = pfs_open(file_name.c_str(), 'r');  
 	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
@@ -349,12 +351,12 @@ int main(int argc, char *argv[]) {
 	char * buf =  (char *)malloc(1*ONEKB);
 	strcpy(buf , "this line was written by client on the server using writeToFileServerFunction");
 	int hit; 
-	/*int nwrite = */pfs_write(fdes, (void *)buf, 1*ONEKB, 0, 0); 
+	pfs_write(fdes, (void *)buf, 1*ONEKB, 0, 0); 
 	
 	// TEST READ 
 	strcpy(buf , "something else"); 
 	pfs_read(fdes, (void *)buf, 1*ONEKB, 0, 0); 
-
+*/
 	return 0;
 }
 
