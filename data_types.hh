@@ -18,7 +18,7 @@ struct fileRecipe{
 	fileRecipe(){
 		stripeWidth = 1;  
 	}
-	
+		
 }; 
 
 struct blockT {
@@ -30,6 +30,7 @@ struct blockT {
 	int access_time; 	
 
 	fileRecipe file_recipe;
+	size_t access_time;
 };
 
 #endif
