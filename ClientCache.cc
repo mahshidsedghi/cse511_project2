@@ -200,25 +200,19 @@ blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, 
 	return &blockT();
 }
 
-//int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
-int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number) {
+int ClientCache::writeToFileServer(blockT b) {
         
-		cout << "salam " << endl; 
-		string servAddress = IP;
-        unsigned short servPort = port_number;
-
-        // read file_name offset nbyte
-	// int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); //FIXME by that magic formula
-	int block_offset = 0; //FIXME should be removed. it is only for test
-        string command(string("write ") + b.file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 "));
-        command += string(b.data);
+	string servAddress;
+        unsigned short servPort;
+	size_t offset_within;
+	corresponding_server(b.block_offset,b.file_recipe.stripeWidth,servAddress,servPort,offset_within);
+        string command(string("write ") + b.file_name + string(" ") + 
+	static_cast<ostringstream*>( &(ostringstream() <<offset_within ))->str() + string(" 1 "));
+        
+	command += string(b.data);
         command += "\0";
-<<<<<<< HEAD
 	cout << "command:" << command << endl;
-	cout << "message size: " << command.length() << endl;
-=======
-		cout << "command:(" << command << ")" << endl;
->>>>>>> 16da4ecebde6b104950e05065b2186af800ad982
+	//cout << "message size: " << command.length() << endl;
         string response;
         try {
                 TCPSocket sock(servAddress, servPort);

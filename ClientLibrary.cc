@@ -340,7 +340,7 @@ int main(int argc, char *argv[]) {
 	blockT b1;
 	b1.file_name = "my_baghali2.txt";
 	strcpy(b1.data , "this line was written by client on the server using writeToFileServer Function");
-	size_t nwrite = disk_cache.writeToFileServer(b1,SERVER0_ADDR,SERVER0_PORT); //gives seg fault
+	size_t nwrite = disk_cache.writeToFileServer(b1);//,SERVER0_ADDR,SERVER0_PORT); //gives seg fault
 	cout <<"nwrite:" << nwrite << endl; 
 	
 	
