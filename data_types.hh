@@ -16,7 +16,7 @@ struct fileRecipe{
 		stripeMask = sm; 
 	}
 	fileRecipe(){
-		stripeWidth = 0;  
+		stripeWidth = 1;  
 	}
 	
 }; 
