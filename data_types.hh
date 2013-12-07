@@ -27,6 +27,8 @@ struct blockT {
 	char status; //dirty, clean or free
 	std::string file_name;
 	size_t block_offset;
+	int access_time; 	
+
 	fileRecipe file_recipe;
 };
 
