@@ -18,7 +18,7 @@ struct fileRecipe{
 	fileRecipe(){
 		stripeWidth = 1;  
 	}
-	
+		
 }; 
 
 struct blockT {
@@ -28,6 +28,7 @@ struct blockT {
 	std::string file_name;
 	size_t block_offset;
 	fileRecipe file_recipe;
+	size_t access_time;
 };
 
 #endif

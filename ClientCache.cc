@@ -35,16 +35,23 @@ ClientCache::ClientCache(){
 
 }
 
-
 void* ClientCache::harvestingFunc(){
 //	size_t ID;
 //	ID = size_t(id);
 	cout << "harvester thread created successfully for client ID:" << endl;//<< ID << endl;
 	while (true) {
 		if(freeSpace.size() < FREE_LIST_MIN_T) {
-			//do harvesting till size reaches FREE_LIST_MAX_T
-			//this should be done based on LRU! but how?
-		}
+//			std::map<size_t,LBA> lru_table;
+/*			std::priority_queue<>
+			int k = FREE_LIST_MAX_T - freeSpace.size();
+//			std::map<size_t,LBA>::iterator lru_table_it;
+//			std::map<LBA,blockT>::iteator cache_iteator;
+			for(std::map<LBA,blockT>::iterator it = usedSpace.begin();it != usedSpace.end(); ++it ) {
+				if (it->second.status == 'C') {
+					lru_table.insert(make_pair(it->second.access_time,));
+				}
+				cout << "Harvesting this much blocks: " << k << endl;
+*/		}
 	}
 	return 0;
 }
