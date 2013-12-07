@@ -21,7 +21,7 @@ using namespace std;
 #define SERVER4_ADDR 	PUMA_ADDR
 #define SERVER4_PORT 	1234
 
-#define METADATA_ADDR 	MAMBERAMO_ADDR
+#define METADATA_ADDR 	TITAN_ADDR
 #define METADATA_PORT 	2345
 
 inline void corresponding_server(size_t block_offset, int strip_width, string &server_address, int &server_port, size_t &offset_within){

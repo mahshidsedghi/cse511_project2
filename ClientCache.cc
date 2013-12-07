@@ -56,7 +56,7 @@ void* ClientCache::flushingFunc(){
 	cout << "flusher thread created successfully for client ID:" << endl;//ID << endl;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	while (true) {
-		usleep(30000000);
+		usleep(10000000); //FIXME: 30S
 		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
 			if (it->second.status == 'D') {
 				writeToFileServer(it->second);

@@ -301,12 +301,12 @@ int main(int argc, char *argv[]) {
  	//int success = pfs_create("googol.txt",1);
 	//cout <<"successful creation: " << success << endl; 
 
-	blockT b1;
+/*	blockT b1;
 	b1.file_name = "baghali.txt";
 	strcpy(b1.data , "this line was written by client on the server using writeToFileServer Function");
 	size_t nwrite = disk_cache.writeToFileServer(b1);//,SERVER0_ADDR,SERVER0_PORT); //gives seg fault
 	cout <<"nwrite:" << nwrite << endl; 
-	
+*/	
 	
 
 	// TEST CREATE 
@@ -334,7 +334,7 @@ int main(int argc, char *argv[]) {
 	cout << "(" << buf  << ")"<< endl; 
 
 
-	usleep(40000000); 
+	usleep(15000000); 
 
 	// TEST DELETE 
 	//if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
