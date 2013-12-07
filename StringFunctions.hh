@@ -7,9 +7,15 @@
 using namespace std; 
 
 string nextToken(string &str){
-	string token; 
-	token = str.substr(0, str.find(" ")); 
-	str = str.substr(token.size() + 1); 	
+	string token;
+	size_t found = str.find(" "); 
+	if (found != string::npos){ 
+		token = str.substr(0, str.find(" ")); 
+		str = str.substr(token.size() + 1); 	
+	}else{ 
+		token = str; 
+		str = ""; 	
+	}
 
 	return token; 
 } 
