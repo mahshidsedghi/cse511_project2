@@ -163,7 +163,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 	
 	string response(""); 
-
+	
 	for (int i = block_offset; i <= end_block_offset; i++){
 		bool hit = disk_cache.lookupBlockInCache(file_name, i);
 		blockT * bt;  
@@ -187,7 +187,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 
 	strcpy((char *)buf, response.substr(off_first, nbyte).c_str());  
 		
-	return nbyte; // FIXME: if nbytes read is less than available bytes  
+	return strlen((char *)buf); // FIXME: if nbytes read is less than available bytes  
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
 	
@@ -241,7 +241,7 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 		}
 		
 	}	
-	return nbyte; 
+	return strlen((char *)buf); 
 }
 
 int pfs_close(int filedes) {
@@ -357,20 +357,26 @@ int main(int argc, char *argv[]) {
 	cout << "---------------------------------------------------------" << endl; 
 //	// TEST WRITE 
 	char * buf =  (char *)malloc(1*ONEKB);
-	strcpy(buf , "this line was written by client on the server using writeToFileServerFunction");
+	strcpy(buf , "this line was written by client  on the server using writeToFileServerFunction");
 	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 0, 0) << endl;  
+	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 1*ONEKB, 0) << endl;  
+	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 2*ONEKB, 0) << endl;  
+	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 3*ONEKB, 0) << endl;  
+	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 4*ONEKB, 0) << endl;  
+	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 5*ONEKB, 0) << endl;  
 	
 	cout << "---------------------------------------------------------" << endl; 
 	
 	// TEST READ 
 	strcpy(buf , "something else"); 
-	pfs_read(fdes, (void *)buf, 1*ONEKB, 0, 0); 
+	cout << pfs_read(fdes, (void *)buf, 3*ONEKB, 0, 0); 
 
 	cout << "(" << buf  << ")"<< endl; 
 
 
 	// TEST DELETE 
-//	if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
+	//if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
+	
 	return 0;
 }
 

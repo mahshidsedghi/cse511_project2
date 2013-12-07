@@ -15,7 +15,7 @@ ClientCache::ClientCache(){
 	for(int i = 0; i < BUFFER_CACHE_CAPACITY; i++)
 		freeSpace.push_front(b1);
 	cout << "freespace size: " << freeSpace.size() <<endl;
-/*
+
 //	rc = pthread_create(&harvester, NULL, &ClientCache::harvestingFunc, (void *)clientID);
 	rc = pthread_create(&harvester, NULL, &ClientCache::callHarvestingFunc, this);
 	if(rc)
@@ -23,6 +23,7 @@ ClientCache::ClientCache(){
 		errMsg << "Could not create harvester thread in client cache ID:" << clientID;
 		throw runtime_error(errMsg.str());
 	}
+/*
 //	rc = pthread_create(&flusher, NULL, &ClientCache::flushingFunc, (void *)clientID);
 	rc = pthread_create(&flusher, NULL, &ClientCache::callFlushingFunc, this);
 	if(rc)
@@ -61,7 +62,7 @@ void* ClientCache::flushingFunc(){
 				it->second.status = 'C';
 			}
 	}
-	return 0; ;
+	return 0; 
 }
 
 void ClientCache::insertSingleBlockIntoCache(blockT b) {
@@ -233,7 +234,10 @@ int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number)
 	return 0;
 }
 
-ClientCache::~ClientCache(){}
+ClientCache::~ClientCache(){
+	pthread_kill(harvester,); 
+	pthread_kill(flusher, ); 
+}
 
 /*int main() {
 	ClientCache mycache;
