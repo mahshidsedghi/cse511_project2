@@ -320,9 +320,9 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 	
 	if (toLower(response) == "nack") return 0; // failed 
 
-	time_t ctime = atoi((trim(nextToken(response)).c_str())); 
-	time_t mtime = atoi((trim(nextToken(response)).c_str())); 
 	size_t fsize = atoi((trim(nextToken(response)).c_str())); 	
+	time_t mtime = atoi((trim(nextToken(response)).c_str())); 
+	time_t ctime = atoi((trim(nextToken(response)).c_str())); 
 	
 	buf->pst_ctime = ctime; 
 	buf->pst_mtime = mtime; 

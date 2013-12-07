@@ -275,6 +275,8 @@ string execFunc_fstat(string arguments){
 
 	size_t total_size = 0; 
 	time_t last_mtime = 0; 
+	time_t last_ctime = 0; 
+
 	string response; 
 	for (int i = 0; i < NUM_FILE_SERVERS; i++){
 		
@@ -301,23 +303,27 @@ string execFunc_fstat(string arguments){
   		}
 		
 		if (toLower(response) != "nack"){
-			time_t modification_time = atoi(trim(nextToken(response)).c_str());
-			size_t file_size = atoi(trim(nextToken(response)).c_str());
 			
+			size_t file_size = atoi(trim(nextToken(response)).c_str());
+			time_t modification_time = atoi(trim(nextToken(response)).c_str());
+			time_t creation_time = atoi(trim(nextToken(response)).c_str()); 
+	
 			cout << "modification time in server " << i << ": " << modification_time << endl; 
 			cout << "file size in server  " << i << ": " << file_size << endl;  			
+			cout << "creation time in server " << i << ": " << creation_time << endl; 
 
+			if (creation_time > last_ctime) last_ctime = creation_time; 
 			if (modification_time > last_mtime) last_mtime = modification_time; 
 			total_size += file_size; 
 		}
 
 	}
 
-	string ret_str = static_cast<ostringstream*>( &(ostringstream() << creation_time ))->str();
-	ret_str += " "; 
+	string ret_str = static_cast<ostringstream*>( &(ostringstream() << total_size ))->str();
+	ret_str += " ";
 	ret_str += last_mtime; 
-	ret_str += " "; 
-	ret_str += static_cast<ostringstream*>( &(ostringstream() << total_size ))->str();
+	ret_str += " ";
+	ret_str += last_ctime;  
 
 	return ret_str; 
 }
