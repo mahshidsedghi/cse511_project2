@@ -199,13 +199,13 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 
 
-	int off_start;
-	int off_end; 
+	int off_start = 0;
+	int off_end = 0; 
 	
  
 	for (int i = block_offset; i <= end_block_offset; i++) {
 		if (i == end_block_offset) 
-			off_end = (offset + nbyte) % (PFS_BLOCK_SIZE * ONEKB);
+			off_end = (offset + nbyte - 1) % (PFS_BLOCK_SIZE * ONEKB);
  		else
 			 off_end = PFS_BLOCK_SIZE * ONEKB - 1; 
 
@@ -227,12 +227,14 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 			corresponding_server(i, fr->stripeWidth, server_address, server_port, within_offset); // call by reference  of server_address, server_port, within_offset 
 			bt = disk_cache.readFromFileServer(file_name, within_offset, server_address, server_port); 
 			
-			disk_cache.insertSingleBlockIntoCache(*bt); 
 		}
 		if (bt != NULL){
 			bt->status = 'D';
 			for (int j = off_start; j <= off_end; j++) {
 				bt->data[j] = ((char*)buf)[i - block_offset + j];
+			}
+			if (hit == false){
+				disk_cache.insertSingleBlockIntoCache(*bt); 
 			}
 		}else{ 
 			return 0; 
