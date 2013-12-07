@@ -19,7 +19,7 @@
 #include "StringFunctions.hh"
 #include "PracticalSocket.hh"  // For Socket, ServerSocket, and SocketException
 #include "MetadataManager.hh"
-#include "net_addresses.hh"
+#include "mt_net_addresses.hh"
 #include "mt_data_types.hh"
 
 #include <iostream>           // For cout, cerr
