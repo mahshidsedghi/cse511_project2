@@ -1,6 +1,7 @@
 #include "ClientCache.hh"
 #include <stdexcept>
 #include <signal.h>
+#include "net_addresses.hh"
 
 using namespace std;
 
@@ -203,7 +204,7 @@ blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, 
 int ClientCache::writeToFileServer(blockT b) {
         
 	string servAddress;
-        unsigned short servPort;
+        int servPort;
 	size_t offset_within;
 	corresponding_server(b.block_offset,b.file_recipe.stripeWidth,servAddress,servPort,offset_within);
         string command(string("write ") + b.file_name + string(" ") + 
