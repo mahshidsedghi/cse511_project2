@@ -337,13 +337,13 @@ int main(int argc, char *argv[]) {
  	//int success = pfs_create("googol.txt",1);
 	//cout <<"successful creation: " << success << endl; 
 
-	//blockT b1;
-	//b1.file_name = "baghali.txt";
-	//strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
-//	size_t nwrite = disk_cache.writeToFileServer(b1,(string)fileserverAddress,(size_t)fileserverPort); //gives seg fault
-//	cout <<"nwrite:" << nwrite << endl; 
+	blockT b1;
+	b1.file_name = "baghali.txt";
+	strcpy(b1.data , "this line was written by client on the server using writeToFileServerFunction");
+	size_t nwrite = disk_cache.writeToFileServer(b1,SERVER0_ADDR,SERVER0_PORT); //gives seg fault
+	cout <<"nwrite:" << nwrite << endl; 
 
-
+/*
 	// TEST CREATE 
 	string file_name = "test_file.txt"; 
 	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
@@ -379,7 +379,7 @@ int main(int argc, char *argv[]) {
 	disk_cache.~ClientCache(); 
 
 
-
+*/
 	return 0;
 }
 
