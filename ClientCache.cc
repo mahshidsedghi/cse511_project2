@@ -59,7 +59,7 @@ void* ClientCache::flushingFunc(){
 		usleep(30000000);
 		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
 			if (it->second.status == 'D') {
-//				writeToFileServer(it->second); //FIXME need to add fileserveraddress and fileserverport as the arguments
+				writeToFileServer(it->second);
 				it->second.status = 'C';
 			}
 	}
