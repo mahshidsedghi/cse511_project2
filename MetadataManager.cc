@@ -19,7 +19,7 @@
 #include "StringFunctions.hh"
 #include "PracticalSocket.hh"  // For Socket, ServerSocket, and SocketException
 #include "MetadataManager.hh"
-#include "mt_net_addresses.hh"
+#include "net_addresses.hh" // FIXME 
 #include "mt_data_types.hh"
 
 #include <iostream>           // For cout, cerr
@@ -142,13 +142,14 @@ string execFunc_create(string arguments){
 	fileRecipe file_recipe; 
 	file_recipe.stripeWidth = atoi(stripe_w_str.c_str()); 
 
+
 	string response; 
 	for (int i = 0; i < atoi(stripe_w_str.c_str()); i++){
 		file_recipe.stripeMask.set(i); //FIXME decide in which servers we should stripe the file  
 		
 		// create a file in each server 
 		string command("create "+ filename);
-		cout << "(" <<filename<<")" << endl;  
+		cout << i<<"(" <<filename<<")" << endl;  
 		try{
 			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
  			sock.send(command.c_str(), command.length()); 
@@ -172,11 +173,11 @@ string execFunc_create(string arguments){
 
 	}
 
-	// put file_recipe in a table 
-	fileEntry fentry(filename, file_recipe);
-	
-	general_file_table.insert(pair<string, fileEntry>(filename, fentry)); 
-
+	if (toLower(response) == "ack"){
+		// put file_recipe in a table 
+		fileEntry fentry(filename, file_recipe);
+		general_file_table.insert(pair<string, fileEntry>(filename, fentry)); 
+	}
 	if (toLower(response) == "nack")
 		return string("failed");
 
@@ -189,16 +190,26 @@ string execFunc_open(string arguments){
 	fileRecipe f_recipe; 
 	map<string, fileEntry>::iterator it; 
 	it = general_file_table.find(filename); 
-	if ( it != general_file_table.end()) f_recipe = it->second.file_recipe; 
-
-	return f_recipe.toString(); 
+	if ( it != general_file_table.end()) {
+		f_recipe = it->second.file_recipe; 
+		return f_recipe.toString(); 
+	}
+	return ""; 
 }
 
 void execFunc_close(string arguments){
+// Do we really need this? 
+/*
 	string filename = nextToken(arguments); 
+	map<string, fileEntry>::iterator it; 
+	it = general_file_table.find(filename); 
+	if (it != general_file_table.end()){
+				
+	}
+
 	
 	//cout << filename << endl; 
-
+*/
 }
 void execFunc_read(string arguments){
 	// I'm not sure if we need this or not 
@@ -212,14 +223,13 @@ string execFunc_delete(string arguments){
 	it = general_file_table.find(filename); 
 	if ( it == general_file_table.end()) return "nack"; 
 
-	bitset<NUM_FILE_SERVERS> stripmask = it->second.file_recipe.stripeMask; //FIXME decide in which servers we should stripe the file  
+	bitset<NUM_FILE_SERVERS> stripmask = it->second.file_recipe.stripeMask;  
 	
 	string response; 
 	for (int i = 0; i < NUM_FILE_SERVERS; i++){
 		
 		if (!stripmask.test(i)) continue; 
 
-		// create a file in each server 
 		string command("delete "+ filename); 
 		try{
 			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
@@ -228,7 +238,6 @@ string execFunc_delete(string arguments){
 			char echoBuffer[RCVBUFSIZE+1]; 
 			int recvMsgSize = 0;
 		
-			// should receive a lot of data from metadata manager 
 			if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
 				cerr << "unable to recv "; 
 				response="nack"; 
@@ -252,8 +261,65 @@ string execFunc_delete(string arguments){
 
 	return string("success"); 
 }
-void execFunc_fstat(string argumnets){
-	// not idea right now. 
+string execFunc_fstat(string arguments){
+	string filename = nextToken(arguments); 
+	
+	map<string, fileEntry>::iterator it; 
+	it = general_file_table.find(filename); 
+	if ( it == general_file_table.end()) return "nack"; 
+
+	fileEntry fe = it->second; 
+	
+	bitset<NUM_FILE_SERVERS> stripmask = fe.file_recipe.stripeMask;  
+	
+
+	size_t total_size = 0; 
+	time_t last_mtime = 0; 
+	string response; 
+	for (int i = 0; i < NUM_FILE_SERVERS; i++){
+		
+		if (!stripmask.test(i)) continue; 
+
+		string command("fstat "+ filename); 
+		try{
+			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
+ 			sock.send(command.c_str(), command.length()); 
+	
+			char echoBuffer[RCVBUFSIZE+1]; 
+			int recvMsgSize = 0;
+		
+			if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+				cerr << "unable to recv "; 
+				response="nack"; 
+			}else {
+				echoBuffer[recvMsgSize]='\0'; 
+				response = echoBuffer; 
+			}
+		}catch(SocketException &e) {
+    		cerr << e.what() << endl;
+    		response="nack"; 
+  		}
+		
+		if (toLower(response) != "nack"){
+			time_t modification_time = atoi(trim(nextToken(response)).c_str());
+			size_t file_size = atoi(trim(nextToken(response)).c_str());
+			
+			cout << "modification time in server " << i << ": " << modification_time << endl; 
+			cout << "file size in server  " << i << ": " << file_size << endl;  			
+
+			if (modification_time > last_mtime) last_mtime = modification_time; 
+			total_size += file_size; 
+		}
+
+	}
+
+	string ret_str = static_cast<ostringstream*>( &(ostringstream() << creation_time ))->str();
+	ret_str += " "; 
+	ret_str += last_mtime; 
+	ret_str += " "; 
+	ret_str += static_cast<ostringstream*>( &(ostringstream() << total_size ))->str();
+
+	return ret_str; 
 }
 
 

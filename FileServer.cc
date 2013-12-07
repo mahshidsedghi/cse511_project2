@@ -96,9 +96,8 @@ void HandleTCPClient(TCPSocket *sock) {
   if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 	  echoBuffer[recvMsgSize]='\0'; 
 	  message = echoBuffer;
-		cout << "(" << message << ")" << endl; 	  
-	  command = nextToken(message);
-		cout << "(" << message << ")" << endl; 	  
+	  cout << "new command: (" << message << ")" << endl << endl << endl; 	  
+	  command = trim(nextToken(message));
 	  if (toLower(command) == "create") {
 			execFunc_create(sock, message); 
 	  }
@@ -111,10 +110,12 @@ void HandleTCPClient(TCPSocket *sock) {
 	  else if (toLower(command) == "delete"){
 			execFunc_delete(sock, message); 
 	  }
+	  else if (toLower(command) == "fstat"){
+			execFunc_stat(sock, message); 
+	  }
 	  else {
 			cout << "unknown command" << endl; 		
 	  }
-//	  fclose (pfs_file);
 	cerr << "exisiting the server loop" ;
   }
 
@@ -232,5 +233,28 @@ void execFunc_delete ( TCPSocket * sock, string arguments ){
 	}
 }
 
+void execFunc_stat (TCPSocket * sock, string arguments ){
+	string file_name = trim(nextToken(arguments)); 
+
+	struct stat filestatus; 
+	if (stat ( file_name.c_str(), &filestatus ) != 0 ) {
+		cout << "File " << file_name << " doesn't exists\n"; 
+		sock->send("nack",4); 
+		return; 
+	}
+	
+	size_t file_size = filestatus.st_size; 
+	time_t file_mtime = filestatus.st_mtime; 
+	time_t file_ctime = filestatus.st_ctime; 
+	
+	string response; 
+	response += static_cast<ostringstream*>( &(ostringstream() << file_size ))->str(); 
+	response += " "; 
+	response += static_cast<ostringstream*>( &(ostringstream() << file_mtime ))->str(); 
+	response += " "; 
+	response += static_cast<ostringstream*>( &(ostringstream() << file_ctime ))->str(); 
+	
+	sock->send(response.c_str(), response.length()); 
+}
 
 

@@ -48,6 +48,7 @@ struct fileRecipe{
 struct fileEntry{
 	string file_name;
 	fileRecipe file_recipe;
+	
 	fileEntry(string fn, fileRecipe fr){
 		file_name = fn; 
 		file_recipe.stripeWidth = fr.stripeWidth; 

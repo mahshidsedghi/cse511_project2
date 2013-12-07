@@ -59,7 +59,7 @@ int ofdt_close_file(int fdesc){
 		return 0; 
 	OFDT[fdesc].open = false; 
 	OFDT[fdesc].desc = -1;    
-	delete OFDT[fdesc].file_recipe; 
+//	delete OFDT[fdesc].file_recipe; 
 
 	return 1; 
 }
@@ -68,6 +68,7 @@ int ofdt_close_file(int fdesc){
 fileRecipe * ofdt_fetch_recipe(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
+		return NULL; 
 	}
 	return OFDT[fdesc].file_recipe; 
 }
@@ -75,6 +76,7 @@ fileRecipe * ofdt_fetch_recipe(int fdesc){
 string ofdt_fetch_name(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
+		return ""; 
 	}
 	return OFDT[fdesc].name; 
 
@@ -82,6 +84,7 @@ string ofdt_fetch_name(int fdesc){
 string ofdt_fetch_mode(int fdesc){
 	if (OFDT[fdesc].open == false) {
 		cerr << "This file is not open! " << endl;
+		return ""; 
 	}
 	return OFDT[fdesc].mode; 
 }

@@ -21,7 +21,28 @@ using namespace std;
 
 ClientCache disk_cache;
 
-
+string sendToServer(string input_str, string IP, int port){
+	string response; 	
+	try{
+		TCPSocket sock(IP, port);
+ 		sock.send(input_str.c_str(), input_str.length()); 
+	
+		char echoBuffer[RCVBUFSIZE+1]; 
+		int recvMsgSize = 0;
+		
+		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+			cerr << "unable to recv"; 
+			exit(1); 
+		}
+ 
+		echoBuffer[recvMsgSize]='\0'; 
+		response = echoBuffer; 
+	}catch(SocketException &e) {
+    		cerr << e.what() << endl;
+    		exit(1);
+  	}
+	return response; 
+}
 
 // Library functions 
 
@@ -50,7 +71,7 @@ int pfs_create(const char * file_name, int stripe_width){
 		char echoBuffer[RCVBUFSIZE+1]; 
 		int recvMsgSize = 0;
 		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){ //do we expect to receive an ack?
-			cerr << "unable to read "; 
+			cerr << "unable to create "; 
 			exit(1); 
 		}
  
@@ -92,7 +113,7 @@ int pfs_open(const char * file_name, const char mode){
 
 		// should receive a lot of data from metadata manager 
 		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-			cerr << "unable to read "; 
+			cerr << "unable to open "; 
 			exit(1); 
 		}
  
@@ -209,6 +230,8 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 }
 
 int pfs_close(int filedes) {
+// FIXME do we need to send something to metadata manager for close? I don't think so. 
+/*
 	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
 	string file_name = ofdt_fetch_name   (filedes);
 
@@ -242,7 +265,7 @@ int pfs_close(int filedes) {
     		cerr << e.what() << endl;
     		exit(1);
   	}
-
+*/
 	return ofdt_close_file(filedes); 	
 } 
 int pfs_delete(const char * file_name) { 
@@ -265,7 +288,7 @@ int pfs_delete(const char * file_name) {
 		int recvMsgSize = 0;
 		
 		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-			cerr << "unable to recv"; 
+			cerr << "unable to delete"; 
 			exit(1); 
 		}
  
@@ -281,10 +304,31 @@ int pfs_delete(const char * file_name) {
 	return 0; 
 }
 int pfs_fstat(int filedes, struct pfs_stat * buf){
-	return 0; // what? 
+	string servAddress = METADATA_ADDR; 
+	unsigned short servPort = METADATA_PORT; 
+	
+	string file_name = ofdt_fetch_name (filedes); 
 
+	string command ("fstat "); 
+	command += file_name;  
+	command += "\0"; 
+
+	// cout << command << endl; 
+	int commandLen = command.length(); 
+
+	string response = sendToServer(command, servAddress, servPort); 
+	
+	if (toLower(response) == "nack") return 0; // failed 
+
+	time_t ctime = atoi((trim(nextToken(response)).c_str())); 
+	time_t mtime = atoi((trim(nextToken(response)).c_str())); 
+	size_t fsize = atoi((trim(nextToken(response)).c_str())); 	
+	
+	buf->pst_ctime = ctime; 
+	buf->pst_mtime = mtime; 
+	buf->pst_size = fsize; 
+	return 1; // successful
 }
-
 int main(int argc, char *argv[]) {
 	// cout << "open file: " << pfs_open("khoshgel", 'r') << endl; 
 	//if (pfs_create("nanaz", 3) > 0) cout << "successful creation of nanaz! " << endl; 
@@ -332,13 +376,16 @@ int main(int argc, char *argv[]) {
 	cout << pfs_read(fdes, (void *)buf, 1*ONEKB, 0, 0); 
 
 	cout << "(" << buf  << ")"<< endl; 
-
+	cout << "---------------------------------------------------------" << endl; 
+	
 
 	usleep(15000000); 
 
 	// TEST DELETE 
 	//if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
 
+	pfs_stat st; 
+	cout << "(" << pfs_fstat(fdes, &st) << ")" << endl; 
 
 
 	return 0;

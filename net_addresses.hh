@@ -10,18 +10,18 @@ using namespace std;
 #define MAMBERAMO_ADDR 	"130.203.40.73"
 #define TITAN_ADDR 		"130.203.59.10"
 
-#define SERVER0_ADDR 	TITAN_ADDR
+#define SERVER0_ADDR 	MAMBERAMO_ADDR
 #define SERVER0_PORT 	1236
-#define SERVER1_ADDR 	PUMA_ADDR
+#define SERVER1_ADDR 	MAMBERAMO_ADDR
 #define SERVER1_PORT 	1234
-#define SERVER2_ADDR 	PUMA_ADDR
+#define SERVER2_ADDR 	MAMBERAMO_ADDR
 #define SERVER2_PORT 	1234
-#define SERVER3_ADDR 	PUMA_ADDR
+#define SERVER3_ADDR 	MAMBERAMO_ADDR
 #define SERVER3_PORT 	1234
 #define SERVER4_ADDR 	PUMA_ADDR
 #define SERVER4_PORT 	1234
 
-#define METADATA_ADDR 	TITAN_ADDR
+#define METADATA_ADDR 	MAMBERAMO_ADDR
 #define METADATA_PORT 	2345
 
 inline void corresponding_server(size_t block_offset, int strip_width, string &server_address, int &server_port, size_t &offset_within){
