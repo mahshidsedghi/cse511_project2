@@ -1,5 +1,6 @@
 #include "ClientCache.hh"
 #include <stdexcept>
+#include <signal.h>
 
 using namespace std;
 
@@ -23,7 +24,7 @@ ClientCache::ClientCache(){
 		errMsg << "Could not create harvester thread in client cache ID:" << clientID;
 		throw runtime_error(errMsg.str());
 	}
-/*
+
 //	rc = pthread_create(&flusher, NULL, &ClientCache::flushingFunc, (void *)clientID);
 	rc = pthread_create(&flusher, NULL, &ClientCache::callFlushingFunc, this);
 	if(rc)
@@ -31,7 +32,7 @@ ClientCache::ClientCache(){
 		errMsg << "Could not create flusher thread in client cache ID:" << clientID;
 		throw runtime_error(errMsg.str());
 	}
-*/
+
 }
 
 
@@ -235,8 +236,10 @@ int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number)
 }
 
 ClientCache::~ClientCache(){
-	pthread_kill(harvester,); 
-	pthread_kill(flusher, ); 
+	cerr << "start kill " << endl; 
+	pthread_kill(harvester, SIGKILL); 
+	pthread_kill(flusher  , SIGKILL); 
+	cerr << "both killed " << endl; 
 }
 
 /*int main() {

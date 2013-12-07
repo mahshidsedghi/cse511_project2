@@ -28,10 +28,12 @@ public:
 	static const int BUFFER_CACHE_CAPACITY = 2*1024/PFS_BLOCK_SIZE; //max number of blocks in buffer cache
 	void *harvestingFunc();
 	static void *callHarvestingFunc(void* arg) {
+		pthread_detach(pthread_self()); 
 		return ((ClientCache*)arg) -> harvestingFunc();
 	}
 	void *flushingFunc(void);
 	static void *callFlushingFunc(void* arg) {
+		pthread_detach(pthread_self()); 
 		return ((ClientCache*)arg) -> flushingFunc();
 	}
 	
