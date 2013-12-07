@@ -376,7 +376,10 @@ int main(int argc, char *argv[]) {
 
 	// TEST DELETE 
 	//if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
-	
+	disk_cache.~ClientCache(); 
+
+
+
 	return 0;
 }
 

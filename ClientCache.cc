@@ -236,10 +236,8 @@ int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number)
 }
 
 ClientCache::~ClientCache(){
-	cerr << "start kill " << endl; 
-	pthread_kill(harvester, SIGKILL); 
-	pthread_kill(flusher  , SIGKILL); 
-	cerr << "both killed " << endl; 
+	pthread_kill(flusher, SIGINT); 
+	pthread_kill(harvester, SIGINT); 
 }
 
 /*int main() {
