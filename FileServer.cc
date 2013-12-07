@@ -205,9 +205,9 @@ void execFunc_write  ( TCPSocket * sock, string arguments ){
 			fclose (pfs_file);
 		  }
 		  else
-			  cerr << "Reading from file which does not exist!\n";
+			  cerr << "Writing to file which does not exist!\n";
 	
-
+			
 } 
 void execFunc_delete ( TCPSocket * sock, string arguments ){
 	string file_name = trim(nextToken(arguments));

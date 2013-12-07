@@ -208,10 +208,11 @@ int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number)
         // read file_name offset nbyte
 	// int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); //FIXME by that magic formula
 	int block_offset = 0; //FIXME should be removed. it is only for test
-        string command = string("write ") + b.file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 ");
+        string command(string("write ") + b.file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 "));
         command += string(b.data);
         command += "\0";
-	cout << "command:" << command;
+	cout << "command:" << command << endl;
+	cout << "message size: " << command.length() << endl;
         string response;
         try {
                 TCPSocket sock(servAddress, servPort);
