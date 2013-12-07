@@ -308,7 +308,7 @@ int main(int argc, char *argv[]) {
 	cout <<"nwrite:" << nwrite << endl; 
 	
 	
-/*
+
 	// TEST CREATE 
 	string file_name = "test_file.txt"; 
 	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
@@ -334,10 +334,11 @@ int main(int argc, char *argv[]) {
 	cout << "(" << buf  << ")"<< endl; 
 
 
+	usleep(40000000); 
+
 	// TEST DELETE 
 	//if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
-	disk_cache.~ClientCache(); 
-*/
+
 
 
 	return 0;
