@@ -15,6 +15,7 @@ ClientCache::ClientCache(){
 	for(int i = 0; i < BUFFER_CACHE_CAPACITY; i++)
 		freeSpace.push_front(b1);
 	cout << "freespace size: " << freeSpace.size() <<endl;
+/*
 //	rc = pthread_create(&harvester, NULL, &ClientCache::harvestingFunc, (void *)clientID);
 	rc = pthread_create(&harvester, NULL, &ClientCache::callHarvestingFunc, this);
 	if(rc)
@@ -29,7 +30,9 @@ ClientCache::ClientCache(){
 		errMsg << "Could not create flusher thread in client cache ID:" << clientID;
 		throw runtime_error(errMsg.str());
 	}
+*/
 }
+
 
 void* ClientCache::harvestingFunc(){
 //	size_t ID;
@@ -135,7 +138,7 @@ void ClientCache::showCacheStatus()
 	cout << "Client #"<< clientID << " Used Space Size: " << usedSpace.size() << endl;
 }
 
-blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, std::string IP, int port_number) {
+blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, std::string IP, int port_number) {
 	// create logical block ID + server 
 	tr1::hash<string> str_hash;
 	size_t file_ID = str_hash(file_name);
@@ -147,9 +150,11 @@ blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, st
 	
 	string response;
 
+	blockT * bt = new blockT(); 
+
 	if (hit == true){
 		cout << "the block hit in the cache " << endl; 
-		blockT * bt = getBlockFromCache(file_name, block_ID); // FIXME get multiple blocks 
+		bt = getBlockFromCache(file_name, block_ID); // FIXME get multiple blocks 
 		response =  bt->data;
 	}
 	else {
@@ -160,8 +165,8 @@ blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, st
 		
 		// read file_name offset nbyte 
 		string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
-		command += " "; 
-		command +=  static_cast<ostringstream*>( &(ostringstream() << 1 ))->str();  
+		command += " 1"; 
+		//command +=  static_cast<ostringstream*>( &(ostringstream() << 1 ))->str();  
  
 		string response;
 		try{
@@ -176,21 +181,21 @@ blockT ClientCache::readFromFileServer(string file_name, size_t block_offset, st
 				echoBuffer[recvMsgSize]='\0'; 
 				response += echoBuffer; 
 			}
-			blockT b1;
-			strcpy(b1.data,response.substr(0,strlen(b1.data)).c_str()); 
-			b1.blockAdr = block_ID;
-			b1.status = 'C'; 
-			b1.file_name = file_name; 
-			b1.block_offset = block_offset;
- 
-			return b1;
+
+			if (response.size() != 0)
+				strcpy(bt->data,response.substr(0,strlen(bt->data)).c_str()); 
+			bt->blockAdr = block_ID;
+			bt->status = 'C'; 
+			bt->file_name = file_name; 
+			bt->block_offset = block_offset;
+			return bt;
 		}
 		catch(SocketException &e){
 			cerr << e.what() << endl; 
 			exit(1);
 		}
 	}
-	return blockT();
+	return &blockT();
 }
 
 //int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {

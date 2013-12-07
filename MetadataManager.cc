@@ -136,7 +136,7 @@ void *ThreadMain(void *clntSock) {
 
 string execFunc_create(string arguments){
 
-	string filename     = nextToken(arguments); 
+	string filename     = trim(nextToken(arguments)); 
 	string stripe_w_str = nextToken(arguments); 
 
 	fileRecipe file_recipe; 
@@ -147,7 +147,8 @@ string execFunc_create(string arguments){
 		file_recipe.stripeMask.set(i); //FIXME decide in which servers we should stripe the file  
 		
 		// create a file in each server 
-		string command("create "+ filename); 
+		string command("create "+ filename);
+		cout << "(" <<filename<<")" << endl;  
 		try{
 			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
  			sock.send(command.c_str(), command.length()); 
@@ -182,8 +183,8 @@ string execFunc_create(string arguments){
 	return string("success"); 
 }
 string execFunc_open(string arguments){
-	string filename = nextToken(arguments); 
-	string mode     = nextToken(arguments); 
+	string filename = trim(nextToken(arguments)); 
+	string mode     = trim(nextToken(arguments)); 
 
 	fileRecipe f_recipe; 
 	map<string, fileEntry>::iterator it; 

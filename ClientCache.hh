@@ -42,7 +42,7 @@ public:
 	void putBlockIntoCache(blockT); //overwrite an existing block
 	void showUsedSpace();
 	void showCacheStatus();
-	blockT readFromFileServer(string file_name, size_t block_offset, std::string IP, int port_number);
+	blockT* readFromFileServer(string file_name, size_t block_offset, std::string IP, int port_number);
 //	int writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number); 
 	int writeToFileServer(blockT b, std::string IP, size_t port_number); //mahshid changed
 	

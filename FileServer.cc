@@ -137,7 +137,7 @@ void execFunc_create ( TCPSocket * sock, string arguments ){
 		cout << "Trying to create file: " << file_name << " which already exists\n";
 		sock->send("nack", 4); 
 	}else {
-		int fd = creat(file_name.c_str(), O_CREAT); //what about file access rights?
+		int fd = creat(file_name.c_str(), O_CREAT | S_IRWXU | S_IRWXG | S_IRWXO); //what about file access rights?
 	  	if (fd >= 0) {
 			cout << "File : " << file_name << " created on the server\n";
 	 		close(fd);
@@ -167,8 +167,10 @@ void execFunc_read   ( TCPSocket * sock, string arguments ){
 
 			int num_read = fread(block_buffer, PFS_BLOCK_SIZE * 1024, 1, pfs_file);
 			cout << "num read:" << num_read <<endl;
-			cout << "block buffer" << block_buffer << endl;
-			sock->send(block_buffer, PFS_BLOCK_SIZE * 1024);
+			block_buffer[num_read]='\0'; 
+			cout << "block buffer(" << block_buffer<<")" << endl;
+			sock->send(block_buffer, strlen(block_buffer));
+			
 		}
 		fclose (pfs_file);
 	}
