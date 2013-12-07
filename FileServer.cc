@@ -96,7 +96,9 @@ void HandleTCPClient(TCPSocket *sock) {
   if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 	  echoBuffer[recvMsgSize]='\0'; 
 	  message = echoBuffer;
+		cout << "(" << message << ")" << endl; 	  
 	  command = nextToken(message);
+		cout << "(" << message << ")" << endl; 	  
 	  if (toLower(command) == "create") {
 			execFunc_create(sock, message); 
 	  }
@@ -178,7 +180,10 @@ void execFunc_read   ( TCPSocket * sock, string arguments ){
 		cerr << "Reading from file which does not exist!\n";
 } 
 void execFunc_write  ( TCPSocket * sock, string arguments ){
+
+			cout << "(" << arguments << ")" << endl; 
 		  string file_name = trim(nextToken(arguments));
+			cout << "(" << arguments << ")" << endl; 
   		  char echoBuffer[RCVBUFSIZE];
   		  int recvMsgSize;
 		  FILE* pfs_file = fopen(file_name.c_str(), "w");
@@ -186,12 +191,13 @@ void execFunc_write  ( TCPSocket * sock, string arguments ){
 			  int block_offset = atoi(trim(nextToken(arguments)).c_str());
 			  int num_blocks = atoi(trim(nextToken(arguments)).c_str());
 			  long int byte_offset = block_offset * PFS_BLOCK_SIZE * 1024;
+				cout << endl << endl << "(" << arguments << ")" << endl << endl; 
 			  cout << "message: " << "write" << ", filename: " <<file_name <<
 					  ", block_offset: " << block_offset << ", num_blocks: "<< num_blocks <<endl; 
 			  if(fseek(pfs_file,byte_offset,SEEK_SET))
 				  cerr <<"fseek failed\n";
 	
-			string message; 
+			string message = arguments; 
 			while ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) {
 				echoBuffer[recvMsgSize] = '\0'; 		
 			 	message += string(echoBuffer);

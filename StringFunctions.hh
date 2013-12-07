@@ -8,14 +8,9 @@ using namespace std;
 
 string nextToken(string &str){
 	string token; 
-	istringstream iss(str); 
-	iss >> token; 
-	str = "";  
-	while (iss){
-		string temp; 
-		iss >> temp; 
-		str += temp + " "; 
-	}
+	token = str.substr(0, str.find(" ")); 
+	str = str.substr(token.size() + 1); 	
+
 	return token; 
 } 
 string toLower(string str){

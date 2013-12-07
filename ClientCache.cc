@@ -202,7 +202,9 @@ blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, 
 
 //int ClientCache::writeToFileServer(char* file_name, LBA block_ID,std::string IP, size_t port_number) {
 int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number) {
-        string servAddress = IP;
+        
+		cout << "salam " << endl; 
+		string servAddress = IP;
         unsigned short servPort = port_number;
 
         // read file_name offset nbyte
@@ -211,7 +213,7 @@ int ClientCache::writeToFileServer(blockT b, std::string IP, size_t port_number)
         string command(string("write ") + b.file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str() + string(" 1 "));
         command += string(b.data);
         command += "\0";
-		cout << "command:" << command;
+		cout << "command:(" << command << ")" << endl;
         string response;
         try {
                 TCPSocket sock(servAddress, servPort);
