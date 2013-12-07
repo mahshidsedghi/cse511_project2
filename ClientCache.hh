@@ -18,6 +18,7 @@
 #include <string.h>
 #include <stdlib.h>
 #define RCVBUFSIZE 32
+#include "net_addresses.hh"
 
 class ClientCache{
 public:

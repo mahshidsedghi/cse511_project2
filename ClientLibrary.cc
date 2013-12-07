@@ -2,7 +2,6 @@
 #include "PracticalSocket.hh"  // For Socket and SocketException
 #include "ClientCache.hh"
 #include "FileDesc.hh"
-#include "net_addresses.hh"
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
 #include <string.h>
