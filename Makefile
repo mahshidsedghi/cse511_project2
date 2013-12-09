@@ -26,7 +26,7 @@ endif
 AUX=PracticalSocket.cc  
 AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_types.hh mt_data_types.hh net_addresses.hh 
 
-all: ClientLibrary MetadataManager FileServer  
+all: ClientLibrary MetadataManager FileServer copy 
 
 ClientLibrary: ClientLibrary.cc ClientCache.cc $(AUX) $(AUX_H)
 	$(CXX) $(CXXFLAGS) -o  ClientLibrary ClientLibrary.cc ClientCache.cc $(AUX) -lpthread
@@ -46,4 +46,10 @@ TCPEchoClient: TCPEchoClient.cc PracticalSocket.cc PracticalSocket.hh
 TCPEchoServer: TCPEchoServer_Thread.cc PracticalSocket.cc PracticalSocket.hh
 	$(CXX) -D_GNU_SOURCE -o TCPEchoServer-Thread TCPEchoServer_Thread.cc PracticalSocket.cc $(LIBS) -lpthread
  
+copy: FileServer 
+	cp FileServer fs0
+	cp FileServer fs1
+	cp FileServer fs2
+	cp FileServer fs3
+	cp FileServer fs4
 
