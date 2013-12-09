@@ -17,7 +17,6 @@ ClientCache::ClientCache(){
 		freeSpace.push_front(b1);
 	cout << "freespace size: " << freeSpace.size() <<endl;
 
-//	rc = pthread_create(&harvester, NULL, &ClientCache::harvestingFunc, (void *)clientID);
 	rc = pthread_create(&harvester, NULL, &ClientCache::callHarvestingFunc, this);
 	if(rc)
 	{
@@ -25,7 +24,6 @@ ClientCache::ClientCache(){
 		throw runtime_error(errMsg.str());
 	}
 
-//	rc = pthread_create(&flusher, NULL, &ClientCache::flushingFunc, (void *)clientID);
 	rc = pthread_create(&flusher, NULL, &ClientCache::callFlushingFunc, this);
 	if(rc)
 	{
@@ -36,31 +34,44 @@ ClientCache::ClientCache(){
 }
 
 void* ClientCache::harvestingFunc(){
-//	size_t ID;
-//	ID = size_t(id);
-	cout << "harvester thread created successfully for client ID:" << endl;//<< ID << endl;
+	cout << "harvester thread created successfully for client ID:" << endl;
+	priority_queue<blockT,std::vector<blockT>,mycomparison> harvest_queue;
+	std::tr1::unordered_map<LBA,blockT>::iterator it;
+	int k;
 	while (true) {
-		if(freeSpace.size() < FREE_LIST_MIN_T) {
-//			std::map<size_t,LBA> lru_table;
-/*			std::priority_queue<>
-			int k = FREE_LIST_MAX_T - freeSpace.size();
-//			std::map<size_t,LBA>::iterator lru_table_it;
-//			std::map<LBA,blockT>::iteator cache_iteator;
-			for(std::map<LBA,blockT>::iterator it = usedSpace.begin();it != usedSpace.end(); ++it ) {
+		if (freeSpace.size() < FREE_LIST_MIN_T) {
+			k = FREE_LIST_MAX_T - freeSpace.size(); //max elements needed to harvest
+			for ( it = usedSpace.begin(); it != usedSpace.end(); ++it ) {
 				if (it->second.status == 'C') {
-					lru_table.insert(make_pair(it->second.access_time,));
+					if (harvest_queue.size() >= k )
+					{
+						if (it->second.access_time < harvest_queue.top().access_time) {
+							harvest_queue.pop();
+							harvest_queue.push(it->second);
+						}	
+					}
+					else
+						harvest_queue.push(it->second);
 				}
-				cout << "Harvesting this much blocks: " << k << endl;
-*/		}
+			}
+		}
+		//just for verification purposes
+		int j = harvest_queue.size();
+		blockT temp;
+		for (int i = 0;i< j; i++){
+			cout <<"harvesting block with access time:"<<harvest_queue.top().access_time << endl;
+//			harvest_queue.top().status = 'F'; //make the block free
+			usedSpace.erase(harvest_queue.top().blockAdr); //remove the element from usedSpace
+			temp.status = 'F';	
+			freeSpace.push_front(temp);//harvest_queue.top()); //add element to free space.
+			harvest_queue.pop();
+		}
 	}
 	return 0;
 }
 
-//void* ClientCache::flushingFunc(void *id){
 void* ClientCache::flushingFunc(){
-//	size_t ID;
-//	ID = size_t(id);
-	cout << "flusher thread created successfully for client ID:" << endl;//ID << endl;
+	cout << "flusher thread created successfully for client ID:" << endl;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	while (true) {
 		usleep(10000000); //FIXME: 30S
@@ -101,8 +112,6 @@ void ClientCache::insertMultipleBlocksIntoCache(blockT* blocks, size_t n) {
 
 void ClientCache::showUsedSpace() {
 	cout << "Used space size:" << usedSpace.size() << endl;
-//	for (auto &pair : usedSpace)
-//		cout << "LBA_" << (size_t)pair.first << "[0]: " << pair.second.data[0] << endl;
 	for (std::tr1::unordered_map<LBA,blockT>::iterator it = usedSpace.begin(); it != usedSpace.end(); ++it)
 		cout << "LBA_" << it->first << "[0]: " << it->second.data[0] << endl;
 }
@@ -173,7 +182,8 @@ blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, 
 		unsigned short servPort = port_number; 
 		
 		// read file_name offset nbyte 
-		string command = string("read ") + file_name + string(" ") + static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
+		string command = string("read ") + file_name + string(" ") + 
+				 static_cast<ostringstream*>( &(ostringstream() << block_offset ))->str(); 
 		command += " 1"; 
 		//command +=  static_cast<ostringstream*>( &(ostringstream() << 1 ))->str();  
  
@@ -219,7 +229,6 @@ int ClientCache::writeToFileServer(blockT b) {
 	command += string(b.data);
         command += "\0";
 	cout << "command:" << command << endl;
-	//cout << "message size: " << command.length() << endl;
         string response;
         try {
                 TCPSocket sock(servAddress, servPort);

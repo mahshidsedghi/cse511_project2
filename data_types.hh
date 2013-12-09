@@ -27,8 +27,17 @@ struct blockT {
 	char status; //dirty, clean or free
 	std::string file_name;
 	size_t block_offset;
+	size_t access_time; //FIXME: we need to update this everytime a block was accessed
 
 	fileRecipe file_recipe;
+};
+
+class mycomparison
+{
+public: 
+	bool operator() (const blockT& lhs, const blockT& rhs) const {
+		return lhs.access_time > rhs.access_time;
+	}
 };
 
 #endif
