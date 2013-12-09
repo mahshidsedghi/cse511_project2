@@ -38,12 +38,41 @@ void HandleTCPClient(TCPSocket *sock);     // TCP client handling function
 void *ThreadMain(void *arg);               // Main program of a thread  
 
 int main(int argc, char *argv[]) {
+  if (argc != 2) {                 // Test for correct number of arguments  
+    cerr << "Usage: " << argv[0] << " <Server Number> " << endl;
+    exit(1);
+  }
 
-	
-  unsigned short echoServPort = SERVER0_PORT;    // First arg:  local port  
+  int server_number = atoi(argv[1]);    // First arg:  server number 
+
+  unsigned short echoServerPort; 
+
+  // FIXME 
+  switch(server_number){
+	case 0:
+		echoServerPort = SERVER0_PORT; 
+		break;
+	case 1:
+		echoServerPort = SERVER1_PORT; 
+		break;
+	case 2:
+		echoServerPort = SERVER2_PORT; 
+		break;
+	case 3: 
+		echoServerPort = SERVER3_PORT; 
+		break; 
+	case 4:
+		echoServerPort = SERVER4_PORT; 
+		break; 
+	default:
+		echoServerPort = SERVER0_PORT; 
+		
+
+
+  }
 
   try {
-    TCPServerSocket servSock(echoServPort);   // Socket descriptor for server  
+    TCPServerSocket servSock(echoServerPort);   // Socket descriptor for server  
   
     for (;;) {      // Run forever  
       // Create separate memory for client argument  

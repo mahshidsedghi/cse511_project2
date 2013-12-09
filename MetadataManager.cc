@@ -115,7 +115,7 @@ void HandleTCPClient(TCPSocket *sock) {
   	else if ( command == "delete" )
 		response = execFunc_delete (recvCommand); 
   	else if ( command == "fstat"  )
-		execFunc_fstat  (recvCommand); 
+		response = execFunc_fstat  (recvCommand); 
 
   	sock->send(response.c_str(), response.length());
   	
@@ -284,6 +284,7 @@ string execFunc_fstat(string arguments){
 
 		string command("fstat "+ filename); 
 		try{
+			cout << "++++++++++++++++++++++++++++++ " << FileServerList[i].first << "    " << FileServerList[i].second << endl; 
 			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
  			sock.send(command.c_str(), command.length()); 
 	
@@ -315,15 +316,18 @@ string execFunc_fstat(string arguments){
 			if (creation_time > last_ctime) last_ctime = creation_time; 
 			if (modification_time > last_mtime) last_mtime = modification_time; 
 			total_size += file_size; 
+		}else {
+
+			return "nack"; 	
 		}
 
 	}
 
 	string ret_str = static_cast<ostringstream*>( &(ostringstream() << total_size ))->str();
 	ret_str += " ";
-	ret_str += last_mtime; 
+	ret_str += static_cast<ostringstream*>( &(ostringstream() << last_mtime ))->str(); 
 	ret_str += " ";
-	ret_str += last_ctime;  
+	ret_str += static_cast<ostringstream*>( &(ostringstream() << last_ctime ))->str();
 
 	return ret_str; 
 }

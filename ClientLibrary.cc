@@ -317,7 +317,7 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 	int commandLen = command.length(); 
 
 	string response = sendToServer(command, servAddress, servPort); 
-	
+
 	if (toLower(response) == "nack") return 0; // failed 
 
 	size_t fsize = atoi((trim(nextToken(response)).c_str())); 	
@@ -355,7 +355,7 @@ int main(int argc, char *argv[]) {
 
 	// TEST CREATE 
 	string file_name = "test_file.txt"; 
-	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
+	if (pfs_create(file_name.c_str(), 2) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
 
 	cout << "---------------------------------------------------------" << endl; 
 	// TEST OPEN 
@@ -379,14 +379,15 @@ int main(int argc, char *argv[]) {
 	cout << "---------------------------------------------------------" << endl; 
 	
 
-	usleep(15000000); 
+	usleep(20000000); 
 
 	// TEST DELETE 
 	//if (pfs_delete(file_name.c_str()) > 0) cout << "successful delete of " << file_name << "!" << endl << endl;  
 
 	pfs_stat st; 
-	cout << "(" << pfs_fstat(fdes, &st) << ")" << endl; 
-
+	cout << "get fstat: (" << pfs_fstat(fdes, &st) << ")" << endl; 
+	cout << "size " << st.pst_size << " ctime " << st.pst_ctime << " mtime " << st.pst_mtime << endl; 
+	
 
 	return 0;
 }
