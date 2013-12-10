@@ -3,7 +3,10 @@
 
 #include <string>
 #include <bitset>
+#include <limits.h>
 #include "config.hh"
+
+#define MAX_BLOCK_NUMBER ULONG_MAX
 
 typedef size_t LBA; //Logical Block Address (LBA) type
 //typedef std::pair<std::string,size_t> LBA; //Logical Block Address (LBA) type
@@ -31,6 +34,23 @@ struct blockT {
 
 	fileRecipe file_recipe;
 };
+struct Interval
+{
+	Interval(int start, int end)
+    	: m_start(start),
+          m_end(end)
+    	{}
+        int m_start;
+        int m_end;
+	inline bool operator<(const Interval& in) const
+	{
+		if (m_start < in.m_start)
+			return true; 
+		if (m_start == in.m_start && m_end < in.m_end)
+			return true; 
+		return false; 
+	}
+};
 
 class mycomparison
 {
@@ -38,14 +58,13 @@ public:
 	bool operator() (const blockT& lhs, const blockT& rhs) const {
 		return lhs.access_time > rhs.access_time;
 	}
-};
-struct Interval
-{
-	Interval(int start, int length)
-    	: m_start(start),
-          m_length(length)
-    	{}
-        int m_start;
-        int m_length;
+
+	// LESS operator for map 
+	bool operator() (const Interval& in1, const Interval& in2) const {
+		if (in1.m_end < in2.m_start) 
+			return true; 
+		return false; 
+	}
+	
 };
 #endif

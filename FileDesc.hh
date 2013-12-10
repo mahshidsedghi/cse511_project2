@@ -1,7 +1,7 @@
 
 #include "data_types.hh"
 #include <iostream>
-
+#include <map>
 
 using namespace std; 
 
@@ -17,7 +17,7 @@ struct OpenFile_Entry{
 	string name; 
 	string mode; 
 
-	map<Interval,char> tokens; 
+	map<Interval,char, mycomparison> tokens; 
 
 }; 
 
@@ -90,5 +90,9 @@ string ofdt_fetch_mode(int fdesc){
 		return ""; 
 	}
 	return OFDT[fdesc].mode; 
+}
+
+bool checkPermission(int fdesc, int block){
+	
 }
 
