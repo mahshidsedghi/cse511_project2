@@ -121,8 +121,158 @@ void addPermission(int fdesc, int start, int end, char mode){
 	TOKEN_MAP tok_map = OFDT[fdesc].tokens; 
 	Interval bl_int (start, end); 
 	
+	while (tok_map.find(bl_int) != tok_map.end()){ // when it has overlap 
+		TOKEN_MAP::iterator it = tok_map.find(bl_int); 
+		if (it->first.m_start > bl_int.m_start){
+			if (it->first.m_end < bl_int.m_end){ 
+				// new  ----------  				 
+				// old    ----     
+				if (mode == 'w' || it->second == 'r'){
+					tok_map.erase(it); 
+					// continue
+				}else if (mode == 'r' && it->second == 'w'){
+					Interval in (bl_int.m_start, it->first.m_start - 1); 
+					tok_map.insert(make_pair( in, mode)); 
+					bl_int.m_start = it->first.m_end + 1; 
+					// continue
+				}
+
+			}else if (it->first.m_end == bl_int.m_end){
+				// new -------------
+				// old    ----------
+				if (mode == 'w' || it->second == 'r'){
+					tok_map.erase(it); 
+					// continue
+				}else if (mode == 'r' && it->second == 'w'){
+					bl_int.m_end = it->first.m_start - 1; 
+					// continue
+				}
+
+			}else if (it->first.m_end > bl_int.m_end){
+				// new -------------
+				// old     -------------
+				if (mode == 'w' && it->second == 'w'){
+					bl_int.m_end = it->first.m_end; 
+					tok_map.erase(it); 
+					// continue
+				}else if (mode == 'w' && it->second == 'r'){
+					Interval temp_int(bl_int.m_end + 1, it->first.m_end); 
+					tok_map.erase(it); 
+					tok_map.insert(make_pair(temp_int, 'r')); 
+
+					// continue	
+				}else if (mode == 'r' && it->second == 'w'){
+					bl_int.m_end = it->first.m_start - 1; 
+					// continue
+				}else if (mode == 'r' && it->second == 'r'){
+					bl_int.m_end = it->first.m_end; 
+					tok_map.erase (it); 
+					// continue
+				}
+			}
+		
+		}else if (it->first.m_start == bl_int.m_start){
+			if (it->first.m_end < bl_int.m_end){
+				// new ------------------
+				// old -------
+				if (mode == 'w' && it->second == 'w'){
+					tok_map.erase(it); 
+					// continue
+				}else if (mode == 'w' && it->second == 'r'){
+					tok_map.erase(it); 
+					// continue	
+				}else if (mode == 'r' && it->second == 'w'){
+					bl_int.m_start = it->first.m_end + 1; 
+					// continue
+				}else if (mode == 'r' && it->second == 'r'){
+					tok_map.erase (it); 
+					// continue
+				}
+	
+			}else if (it->first.m_end == bl_int.m_end){
+				// new ------------------
+				// old ------------------
+				if (mode == 'w' || it->second == 'r') {
+					tok_map.erase(it); 
+					// break;FIXME if you want to change it to continue, some changes needed
+				}else if (mode == 'r' && it->second == 'w') {
+					// break; 	FIXME if you want to change it to continue, some changes needed
+				}
+					
+			}else if (it->first.m_end > bl_int.m_end){
+				// new ------------
+				// old ------------------
+				if (mode == 'w' && it->second == 'w'){
+					// break  FIXME if you want to continue here, some changes are needed
+				}else if (mode == 'w' && it->second == 'r'){
+					Interval temp_int (bl_int.m_end + 1, it->first.m_end); 
+					tok_map.erase(it); 
+					tok_map.insert(make_pair(temp_int, 'r')); 
+					// continue	
+				}else if (mode == 'r' && it->second == 'w'){
+					// break FIXME if you want to continue here, some changes are needed 
+				}else if (mode == 'r' && it->second == 'r'){
+					// break FIXME if you want to continue here, some changes are needed
+				}
+
+			}
+		}else if  (it->first.m_start < bl_int.m_start){
+			if (it->first.m_end < bl_int.m_end){
+				// new -------------------
+				// old        ----- 
+				if (mode == 'w' && it->second == 'w'){
+					tok_map.erase(it); 
+					// continue; 
+				}else if (mode == 'w' && it->second == 'r'){
+					tok_map.erase(it); 
+					// continue	
+				}else if (mode == 'r' && it->second == 'w'){
+					Interval in (bl_int.m_start, it->first.m_start - 1);
+					tok_map.insert(make_pair(in, mode)); 
+					bl_int.m_start = it->first.m_end + 1; 
+					// continue
+				}else if (mode == 'r' && it->second == 'r'){
+					tok_map.erase(it); 
+					// continue; 
+				}
+			}else if (it->first.m_end == bl_int.m_end){
+				// new -------------------
+				// old     ---------------
+				if (mode == 'w' || it->second == 'r') {
+					tok_map.erase(it); 
+					// continue
+				}else if (mode == 'r' && it->second == 'w'){
+					bl_int.m_end = it->first.m_start - 1; 
+					// continue
+				}
+			}else if (it->first.m_end > bl_int.m_end){
+				// new ------------------
+				// old       ---------------	
+				if (mode == 'w' && it->second == 'w'){
+					bl_int.m_end = it->first.m_end; 
+					tok_map.erase(it); 
+					// continue; 
+				}else if (mode == 'w' && it->second == 'r'){
+					Interval temp_int(bl_int.m_end + 1, it->first.m_end); 
+					tok_map.erase(it); 
+					tok_map.insert(make_pair(temp_int, 'r')); 
+					// continue	
+				}else if (mode == 'r' && it->second == 'w'){
+					bl_int.m_end = it->first.m_start - 1;  
+					// continue
+				}else if (mode == 'r' && it->second == 'r'){
+					bl_int.m_end = it->first.m_end; 
+					tok_map.erase(it); 
+					// continue; 
+				}
+			}
+		
+		}
+	
+	}
 	if (tok_map.find(bl_int) == tok_map.end()) // don't have block token
 	{
+
 		Interval *right = NULL; 
 		Interval *left  = NULL;
  
@@ -134,23 +284,28 @@ void addPermission(int fdesc, int start, int end, char mode){
 		if (right != NULL && tok_map.find(*right) != tok_map.end()){
 			if (tok_map.find(*right)->second == mode){
 				TOKEN_MAP::iterator it_right = tok_map.find(*right); 
-				bl_int.end = it_right->second.end; 	
+				bl_int.m_end = it_right->first.m_end; 	
 				tok_map.erase(*right); 
 			}
 		}
-		if (left != NULL && tok_map.find(left) != tok_map.end()){
-			if (tok_map.find(left)->second == mode){
+		if (left != NULL && tok_map.find(*left) != tok_map.end()){
+			if (tok_map.find(*left)->second == mode){
 				TOKEN_MAP::iterator it_left = tok_map.find(*left); 
-				bl_int.start = it_left->second.start; 
+				bl_int.m_start = it_left->first.m_start; 
 				tok_map.erase(*left); 
 			}
 		}
 		
 		tok_map.insert(make_pair(bl_int, mode)); 
-		
-	}else{ // when it has overlap 
-		// FIXME 
+	}else {
+		// error 
+		cout << "it's not supposed to find overlap any more " << endl; 
 	}
+
 }
+
+		
+	
+
 
 
