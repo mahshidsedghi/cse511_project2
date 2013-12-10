@@ -117,8 +117,40 @@ bool checkPermission(int fdesc, int block, char mode){
 	}
 }
 
-//void addPermission(int fdes, int start, int end, char mode){
-//	TOKEN_MAP tok_map = 
-//}
+void addPermission(int fdesc, int start, int end, char mode){
+	TOKEN_MAP tok_map = OFDT[fdesc].tokens; 
+	Interval bl_int (start, end); 
+	
+	if (tok_map.find(bl_int) == tok_map.end()) // don't have block token
+	{
+		Interval *right = NULL; 
+		Interval *left  = NULL;
+ 
+		if (end   != ULONG_MAX) 
+	 		right  = new Interval(end+1, end+1); 
+		if (start != 0        ) 
+			left   = new Interval(start - 1, start -1); 	
+
+		if (right != NULL && tok_map.find(*right) != tok_map.end()){
+			if (tok_map.find(*right)->second == mode){
+				TOKEN_MAP::iterator it_right = tok_map.find(*right); 
+				bl_int.end = it_right->second.end; 	
+				tok_map.erase(*right); 
+			}
+		}
+		if (left != NULL && tok_map.find(left) != tok_map.end()){
+			if (tok_map.find(left)->second == mode){
+				TOKEN_MAP::iterator it_left = tok_map.find(*left); 
+				bl_int.start = it_left->second.start; 
+				tok_map.erase(*left); 
+			}
+		}
+		
+		tok_map.insert(make_pair(bl_int, mode)); 
+		
+	}else{ // when it has overlap 
+		// FIXME 
+	}
+}
 
 
