@@ -26,8 +26,8 @@ public:
 	static size_t clientID;
 	ClientCache();
 	static size_t LAST_ACCESS;
-	static const size_t FREE_LIST_MIN_T = 100;
-	static const size_t FREE_LIST_MAX_T = 2000;
+	static const size_t FREE_LIST_MIN_T = 2045; //FIXME
+	static const size_t FREE_LIST_MAX_T = 2048; //FIXME
 	static const int BUFFER_CACHE_CAPACITY = 2*1024/PFS_BLOCK_SIZE; //max number of blocks in buffer cache
 	void *harvestingFunc();
 	static void *callHarvestingFunc(void* arg) {
