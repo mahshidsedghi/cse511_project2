@@ -106,16 +106,18 @@ void HandleTCPClient(TCPSocket *sock) {
 		response = execFunc_create (recvCommand); 
   	else if ( command == "open"   )
 		response = execFunc_open   (recvCommand); 
-  	else if ( command == "close"  )
-		execFunc_close  (recvCommand); 
-  	else if ( command == "read"   )
-		execFunc_read   (recvCommand); 
-  	else if ( command == "write"  ) 
-		execFunc_write  (recvCommand); 
+//  	else if ( command == "close"  )
+//		execFunc_close  (recvCommand); 
+//  	else if ( command == "read"   )
+//		execFunc_read   (recvCommand); 
+//  	else if ( command == "write"  ) 
+//		execFunc_write  (recvCommand); 
   	else if ( command == "delete" )
 		response = execFunc_delete (recvCommand); 
   	else if ( command == "fstat"  )
 		response = execFunc_fstat  (recvCommand); 
+  	else if ( command == "request_token") //FIXME
+		response = execFunc_request_token  (recvCommand); //FIXME
 
   	sock->send(response.c_str(), response.length());
   	
@@ -330,6 +332,12 @@ string execFunc_fstat(string arguments){
 	ret_str += static_cast<ostringstream*>( &(ostringstream() << last_ctime ))->str();
 
 	return ret_str; 
+}
+
+string execFunc_request_token(string arguments){ //FIXME
+	
+	return "";
+	//FIXME we might have to revoke some other client's token for this purpose
 }
 
 
