@@ -44,16 +44,54 @@ struct fileRecipe{
 
 
 }; 
+struct Interval
+{
+	Interval(int start, int end)
+    	: m_start(start),
+          m_end(end)
+    	{}
+        int m_start;
+        int m_end;
+	inline bool operator<(const Interval& in) const
+	{
+		if (m_start < in.m_start)
+			return true; 
+		if (m_start == in.m_start && m_end < in.m_end)
+			return true; 
+		return false; 
+	}
+};
+
+class mycomparison
+{
+public: 
+	bool operator() (const blockT& lhs, const blockT& rhs) const {
+		return lhs.access_time < rhs.access_time;
+	}
+
+	// LESS operator for map 
+	bool operator() (const Interval& in1, const Interval& in2) const {
+		if (in1.m_end < in2.m_start) 
+			return true; 
+		return false; 
+	}
+	
+};
+
+
 
 struct fileEntry{
 	string file_name;
 	fileRecipe file_recipe;
+
+	tr1::tuple<Interval, char, string, int> MDTokens; 	
 	
 	fileEntry(string fn, fileRecipe fr){
 		file_name = fn; 
 		file_recipe.stripeWidth = fr.stripeWidth; 
 		file_recipe.stripeMask = fr.stripeMask; 
 	}
+
 }; 
 
 typedef map<string, fileEntry> FILETABLE;  
