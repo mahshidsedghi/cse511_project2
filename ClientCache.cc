@@ -7,6 +7,8 @@ using namespace std;
 
 size_t ClientCache::clientID = 0;
 
+size_t ClientCache::LAST_ACCESS = 0;
+
 ClientCache::ClientCache(){
 	clientID++; 
 	int rc;
@@ -34,12 +36,14 @@ ClientCache::ClientCache(){
 }
 
 void* ClientCache::harvestingFunc(){
-	cout << "harvester thread created successfully for client ID:" << endl;
+//	cout << "harvester thread created successfully for client ID:" << endl;
 	priority_queue<blockT,std::vector<blockT>,mycomparison> harvest_queue;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	int k;
 	while (true) {
 		if (freeSpace.size() < FREE_LIST_MIN_T) {
+			cout << freeSpace.size() << "\t" << FREE_LIST_MIN_T <<endl << endl;
+			cout << "harvesting" << endl;
 			k = FREE_LIST_MAX_T - freeSpace.size(); //max elements needed to harvest
 			for ( it = usedSpace.begin(); it != usedSpace.end(); ++it ) {
 				if (it->second.status == 'C') {
@@ -55,15 +59,14 @@ void* ClientCache::harvestingFunc(){
 				}
 			}
 		}
-		//just for verification purposes
 		int j = harvest_queue.size();
+		cout << "j in harvesting: "<< j << endl;
 		blockT temp;
 		for (int i = 0;i< j; i++){
 			cout <<"harvesting block with access time:"<<harvest_queue.top().access_time << endl;
-//			harvest_queue.top().status = 'F'; //make the block free
 			usedSpace.erase(harvest_queue.top().blockAdr); //remove the element from usedSpace
-			temp.status = 'F';	
-			freeSpace.push_front(temp);//harvest_queue.top()); //add element to free space.
+			temp.status = 'F'; //make the block free
+			freeSpace.push_front(temp); //add to free list
 			harvest_queue.pop();
 		}
 	}
@@ -71,7 +74,7 @@ void* ClientCache::harvestingFunc(){
 }
 
 void* ClientCache::flushingFunc(){
-	cout << "flusher thread created successfully for client ID:" << endl;
+//	cout << "flusher thread created successfully for client ID:" << endl;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	while (true) {
 		usleep(10000000); //FIXME: 30S
@@ -87,9 +90,11 @@ void* ClientCache::flushingFunc(){
 void ClientCache::insertSingleBlockIntoCache(blockT b) {
 //	assert(freeSpace.size() + usedSpace.size() <= BUFFER_CACHE_CAPACITY);
 	if (!freeSpace.empty()) {
+		b.access_time = ClientCache::LAST_ACCESS++; //for LRU purposes
 		std::pair<LBA,blockT> mypair = make_pair(b.blockAdr,b);
 		freeSpace.pop_front();
 		usedSpace.insert(mypair);
+		cout << "inserted a new block into cache with access time:" << b.access_time << "and free space size:" << freeSpace.size() << endl;
 	}
 	else {
 		stringstream errMsg;
@@ -139,14 +144,18 @@ blockT* ClientCache::getBlockFromCache(string file_name, size_t block_offset) {
 
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	it = usedSpace.find(block_ID);
-	if(it != usedSpace.end()) //will it search the whole bucket?
+	if(it != usedSpace.end()) {//will it search the whole bucket?
+		it->second.access_time = ClientCache::LAST_ACCESS++; //for LRU purposes
+		cout << "accessed a block in cache and updated its access_time as: " << it->second.access_time << endl;
 		return &(it->second);
+	}
 	else
 		return NULL;
 }
 
 void ClientCache::putBlockIntoCache(blockT b) {
 	std::pair<LBA,blockT> mypair = make_pair(b.blockAdr,b);
+	b.access_time = ClientCache::LAST_ACCESS++; //for LRU purposes
 	usedSpace.insert(mypair);
 }
 

@@ -221,10 +221,12 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 			if (hit == false){
 				disk_cache.insertSingleBlockIntoCache(*bt); 
 			}
-		}else{ 
-			return 0; 
+			else 				///////////////
+				disk_cache.putBlockIntoCache(*bt); //CONFIRM: put the modified block back into the cache. OK?
 		}
-		
+		else 
+			return 0;
+				
 	}	
 	return strlen((char *)buf); 
 }
@@ -335,6 +337,7 @@ int main(int argc, char *argv[]) {
 */	
 	
 
+/*
 	// TEST CREATE 
 	string file_name = "test_file.txt"; 
 	if (pfs_create(file_name.c_str(), 2) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
@@ -346,7 +349,7 @@ int main(int argc, char *argv[]) {
 
 
 	cout << "---------------------------------------------------------" << endl; 
-//	// TEST WRITE 
+	// TEST WRITE 
 	char * buf =  (char *)malloc(1*ONEKB);
 	strcpy(buf , "this line was written by client  on the server using writeToFileServerFunction");
 	cout << "pfs write " << pfs_write(fdes, (void *)buf, 1*ONEKB, 0, 0) << endl;  
@@ -370,7 +373,29 @@ int main(int argc, char *argv[]) {
 	cout << "get fstat: (" << pfs_fstat(fdes, &st) << ")" << endl; 
 	cout << "size " << st.pst_size << " ctime " << st.pst_ctime << " mtime " << st.pst_mtime << endl; 
 	
+*/
 
+	//TEST HARVESTING FUNCTION
+	
+	string file_name = "test_file.txt"; 
+	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
+	cout << "---------------------------------------------------------" << endl; 
+	
+	// TEST OPEN 
+	int fdes = pfs_open(file_name.c_str(), 'r'); 
+	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
+
+	char * buf =  (char *)malloc(1*ONEKB);
+	strcpy(buf , "this line was written by client  on the server using writeToFileServerFunction");
+
+	for (int i = 0; i<5; i++) //read 5 blcoks so that harvester starts working
+		cout << pfs_write(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
+	
+//	cout << "---------------------------------------------------------" << endl; 
+//	for (int i = 0; i<5; i++) //read 5 blcoks so that harvester starts working
+//		cout << pfs_read(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
+
+	usleep(20000000); 
 	return 0;
 }
 
