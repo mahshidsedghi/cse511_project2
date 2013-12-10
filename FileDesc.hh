@@ -7,6 +7,8 @@ using namespace std;
 
 #define MAX_NUM_FILES 256
 
+typedef map<Interval,char, mycomparison> TOKEN_MAP ; 
+
 int next_file_descriptor = 0; 
 
 struct OpenFile_Entry{
@@ -17,7 +19,7 @@ struct OpenFile_Entry{
 	string name; 
 	string mode; 
 
-	map<Interval,char, mycomparison> tokens; 
+	TOKEN_MAP tokens; 
 
 }; 
 
@@ -92,7 +94,31 @@ string ofdt_fetch_mode(int fdesc){
 	return OFDT[fdesc].mode; 
 }
 
-bool checkPermission(int fdesc, int block){
+bool checkPermission(int fdesc, int block, char mode){
+	TOKEN_MAP tok_map = OFDT[fdesc].tokens; 	
 	
+	Interval bl_int (block, block);
+	if (tok_map.find(bl_int) == tok_map.end()) // don't have block token
+	{
+		return false; 
+	}
+	TOKEN_MAP::iterator it = tok_map.find(bl_int); 
+
+	switch (mode){
+		case 'r':
+			return true; 
+		case 'w': 
+			if (it->second == 'r') 
+				return false; 
+			else 
+				return true; 
+		default: 
+			return false; 
+	}
 }
+
+//void addPermission(int fdes, int start, int end, char mode){
+//	TOKEN_MAP tok_map = 
+//}
+
 

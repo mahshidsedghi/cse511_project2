@@ -268,6 +268,8 @@ int pfs_close(int filedes) {
     		exit(1);
   	}
 */
+
+	// FIXME: call flusher for all block which has write token || blocks are in cache and dirty 
 	return ofdt_close_file(filedes); 	
 } 
 int pfs_delete(const char * file_name) { 
@@ -385,6 +387,10 @@ int main(int argc, char *argv[]) {
 	int fdes = pfs_open(file_name.c_str(), 'r'); 
 	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
 
+//	checkPermisson(fdes, 	
+
+
+/*
 	char * buf =  (char *)malloc(1*ONEKB);
 	strcpy(buf , "this line was written by client  on the server using writeToFileServerFunction");
 
@@ -395,6 +401,7 @@ int main(int argc, char *argv[]) {
 	for (int i = 0; i<20; i++) //read 5 blcoks so that harvester starts working
 		cout << pfs_read(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
 
+*/
 	usleep(20000000); 
 	return 0;
 }
