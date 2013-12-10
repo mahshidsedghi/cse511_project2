@@ -39,5 +39,13 @@ public:
 		return lhs.access_time > rhs.access_time;
 	}
 };
-
+struct Interval
+{
+	Interval(int start, int length)
+    	: m_start(start),
+          m_length(length)
+    	{}
+        int m_start;
+        int m_length;
+};
 #endif
