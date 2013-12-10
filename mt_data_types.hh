@@ -53,9 +53,6 @@ struct Interval
 class mycomparison
 {
 public: 
-	bool operator() (const blockT& lhs, const blockT& rhs) const {
-		return lhs.access_time < rhs.access_time;
-	}
 
 	// LESS operator for map 
 	bool operator() (const Interval& in1, const Interval& in2) const {
