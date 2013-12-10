@@ -16,6 +16,9 @@ struct OpenFile_Entry{
 	
 	string name; 
 	string mode; 
+
+	map<Interval,char> tokens; 
+
 }; 
 
 OpenFile_Entry OFDT[MAX_NUM_FILES];

@@ -281,25 +281,7 @@ int pfs_delete(const char * file_name) {
 	// cout << command << endl; 
 	int commandLen = command.length(); 
 
-	string response; 	
-	try{
-		TCPSocket sock(servAddress, servPort);
- 		sock.send(command.c_str(), commandLen); 
-	
-		char echoBuffer[RCVBUFSIZE+1]; 
-		int recvMsgSize = 0;
-		
-		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-			cerr << "unable to delete"; 
-			exit(1); 
-		}
- 
-		echoBuffer[recvMsgSize]='\0'; 
-		response = echoBuffer; 
-	}catch(SocketException &e) {
-    		cerr << e.what() << endl;
-    		exit(1);
-  	}
+	string response = sendToServer(command, servAddress, servPort); 
 
 	if (toLower(response) == "success") 
 		return 1; 
