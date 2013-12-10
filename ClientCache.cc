@@ -42,32 +42,39 @@ void* ClientCache::harvestingFunc(){
 	int k;
 	while (true) {
 		if (freeSpace.size() < FREE_LIST_MIN_T) {
-			cout << freeSpace.size() << "\t" << FREE_LIST_MIN_T <<endl << endl;
-			cout << "harvesting" << endl;
+//			cout << freeSpace.size() << "\t" << FREE_LIST_MIN_T <<endl << endl;
+//			cout << "harvesting" << endl;
 			k = FREE_LIST_MAX_T - freeSpace.size(); //max elements needed to harvest
+//			cout << "k in harvester:"<< k << endl;
 			for ( it = usedSpace.begin(); it != usedSpace.end(); ++it ) {
 				if (it->second.status == 'C') {
+//					cout << "iterated item access time: " << it->second.access_time << endl;
 					if (harvest_queue.size() >= k )
 					{
+//						cout << "top is :" << harvest_queue.top().access_time << endl;
 						if (it->second.access_time < harvest_queue.top().access_time) {
 							harvest_queue.pop();
 							harvest_queue.push(it->second);
 						}	
 					}
-					else
+					else {
 						harvest_queue.push(it->second);
+//						cout << "pushed this into queue: " << it->second.access_time <<endl;
+					}
+						
 				}
 			}
-		}
-		int j = harvest_queue.size();
-		cout << "j in harvesting: "<< j << endl;
-		blockT temp;
-		for (int i = 0;i< j; i++){
-			cout <<"harvesting block with access time:"<<harvest_queue.top().access_time << endl;
-			usedSpace.erase(harvest_queue.top().blockAdr); //remove the element from usedSpace
-			temp.status = 'F'; //make the block free
-			freeSpace.push_front(temp); //add to free list
-			harvest_queue.pop();
+		
+			int j = harvest_queue.size();
+//			cout << "j in harvesting: "<< j << endl;
+			blockT temp;
+			for (int i = 0;i< j; i++){
+				cout <<"harvesting block with access time:"<<harvest_queue.top().access_time << endl;
+				usedSpace.erase(harvest_queue.top().blockAdr); //remove the element from usedSpace
+				temp.status = 'F'; //make the block free
+				freeSpace.push_front(temp); //add to free list
+				harvest_queue.pop();
+			}
 		}
 	}
 	return 0;

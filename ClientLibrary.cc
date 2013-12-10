@@ -406,12 +406,12 @@ int main(int argc, char *argv[]) {
 	char * buf =  (char *)malloc(1*ONEKB);
 	strcpy(buf , "this line was written by client  on the server using writeToFileServerFunction");
 
-	for (int i = 0; i<5; i++) //read 5 blcoks so that harvester starts working
-		cout << pfs_write(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
+//	for (int i = 0; i<5; i++) //read 5 blcoks so that harvester starts working
+//		cout << pfs_write(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
 	
 //	cout << "---------------------------------------------------------" << endl; 
-//	for (int i = 0; i<5; i++) //read 5 blcoks so that harvester starts working
-//		cout << pfs_read(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
+	for (int i = 0; i<20; i++) //read 5 blcoks so that harvester starts working
+		cout << pfs_read(fdes, (void *)buf, 1*ONEKB, i*1024, 0);
 
 	usleep(20000000); 
 	return 0;

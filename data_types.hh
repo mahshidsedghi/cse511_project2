@@ -36,7 +36,7 @@ class mycomparison
 {
 public: 
 	bool operator() (const blockT& lhs, const blockT& rhs) const {
-		return lhs.access_time > rhs.access_time;
+		return lhs.access_time < rhs.access_time;
 	}
 };
 
