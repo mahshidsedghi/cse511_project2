@@ -72,7 +72,7 @@ struct fileEntry{
 	string file_name;
 	fileRecipe file_recipe;
 
-	tr1::tuple<Interval, char, string, int> MDTokens; 	
+	map<Interval,tr1::tuple<char, string, int> > MDTokens; //map(key=interval,value=(mode,IP,port) )
 	
 	fileEntry(string fn, fileRecipe fr){
 		file_name = fn; 
