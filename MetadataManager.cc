@@ -334,8 +334,30 @@ string execFunc_fstat(string arguments){
 	return ret_str; 
 }
 
-string execFunc_request_token(string arguments){ //FIXME
+string execFunc_request_token(string arguments){ //FIXME <request_token,file_name,block_offset,mode>
+	string filename = nextToken(arguments);
+	size_t block_offset = atoi(nextToken(arguments));
+	char mode = nextToken(arguments)[0];
+
+	map<string, fileEntry>::iterator it; 
+	it = general_file_table.find(filename);
+
+	if (it == general_file_table.end()) { //first reader/writer of the file
+		cout << "trying to get tokens for a non exisiting file!\n";
+		return "nack";
+	}
+	fileEntry fe = it->second;
+	Interval interval(block_offset, block_offset);
+	map<Interval,tuple<char,string,int> >::iterator mdtokens_it;
+	mdtokens_it = fe.MDTokens.find(interval);
+
+	if (mdtokens_it == fe.MDTokens.end()) //if interval does not exist in the table
+		//what to do?
+	else {//if interval exists
+
+	}
 	
+
 	return "";
 	//FIXME we might have to revoke some other client's token for this purpose
 }
