@@ -52,7 +52,7 @@ struct Interval
 	}
 	bool operator==(const Interval& in1) const 
 	{
-		if (!(m_end < in.m_start) && !(in.m_end < m_start))
+		if (!(m_end < in1.m_start) && !(in1.m_end < m_start))
 			return true; 
 		return false; 
 	}
