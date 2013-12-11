@@ -28,7 +28,7 @@ AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_ty
 all: test MetadataManager FileServer  copy 
 
 test: test_client.cc pfs.hh FileDesc.hh PracticalSocket.cc ClientCache.cc pfs.cc 
-	$(CXX) $(CXXFLAGS) -o test_client PracticalSocket.cc  ClientCache.cc pfs.cc test_client.cc -lpthread 
+	$(CXX) $(CXXFLAGS) -o test_client PracticalSocket.cc  ClientCache.cc pfs.cc FileDesc.cc test_client.cc -lpthread 
 
 
 #PracticalSocket: PracticalSocket.cc 

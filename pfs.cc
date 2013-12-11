@@ -1,11 +1,7 @@
-#include "StringFunctions.hh"
-#include "PracticalSocket.hh"  // For Socket and SocketException
-#include "ClientCache.hh"
-#include "FileDesc.hh"
+#include "pfs.hh"
 #include <iostream>           // For cerr and cout
 #include <cstdlib>            // For atoi()
 #include <string.h>
-
 #include <tr1/functional>
 #include <cmath>
 #include <string>
@@ -47,8 +43,8 @@ string sendToServer(string input_str, string IP, int port){
 // Library functions 
 
 int pfs_create(const char * file_name, int stripe_width){
-//	string servAddress = metadataAddress; 
-//	unsigned short servPort = metadataPort;
+	string servAddress = METADATA_ADDR;  
+	unsigned short servPort = METADATA_PORT; 
 
 	string command ("create "); 
 	command += file_name;  
@@ -59,29 +55,8 @@ int pfs_create(const char * file_name, int stripe_width){
 	// cout << command << endl; 
 	int commandLen = command.length(); 
 
-	string response; 	
-	try{
-		string servAddress = METADATA_ADDR; 
-		unsigned short servPort = METADATA_PORT;
-		TCPSocket sock(servAddress, servPort);
-
- 
- 		sock.send(command.c_str(), commandLen); 
+	string response = sendToServer(command, servAddress, servPort);  	
 	
-		char echoBuffer[RCVBUFSIZE+1]; 
-		int recvMsgSize = 0;
-		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){ //do we expect to receive an ack?
-			cerr << "unable to create "; 
-			exit(1); 
-		}
- 
-		echoBuffer[recvMsgSize]='\0'; 
-		response = echoBuffer; 
-	}catch(SocketException &e) {
-    		cerr << "create: " << e.what() << endl;
-    		exit(1); 	
-  	}
-
 	cout << response << endl; 
 
 	if (toLower(response) == "success") 
@@ -102,6 +77,8 @@ int pfs_open(const char * file_name, const char mode){
 	// cout << command << endl; 
 	int commandLen = command.length(); 
 
+	string response = sendToServer(command, servAddress, servPort); 	
+	/*
 	string response; 	
 	try{
 		TCPSocket sock(servAddress, servPort);
@@ -123,7 +100,7 @@ int pfs_open(const char * file_name, const char mode){
     		cerr << e.what() << endl;
     		exit(1);
   	}
-	
+	*/
 	string file_rec_str = response; 
 
 	int st_width   = atoi(nextToken(file_rec_str).c_str()); 	
@@ -135,21 +112,55 @@ int pfs_open(const char * file_name, const char mode){
 
 	string fname(file_name);
 	string fmode(1, mode);   
-	return ofdt_open_file(fr, fname, fmode); // return file descriptor  
-
+	int fdes = FileDescriptor::ofdt_open_file(fr, fname, fmode); // return file descriptor  
+	return fdes; 
 }
 ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cache_hit){ 
 
-	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
-	string file_name = ofdt_fetch_name   (filedes); 
-	string file_mode = ofdt_fetch_mode   (filedes); 
+	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe(filedes); 
+	string file_name = FileDescriptor::ofdt_fetch_name(filedes); 
+	string file_mode = FileDescriptor::ofdt_fetch_mode(filedes); 
 	
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
+
+	cout << "file desc " << filedes << endl; 
+	cout << FileDescriptor::checkPermission(filedes, 3, 'r') << endl; 
 	
-	string response(""); 
 	
+	int start = -1; 
+	int end = -1; 
+	vector<Interval> int_list; 
 	for (int i = block_offset; i <= end_block_offset; i++){
+		cout << i << " " << FileDescriptor::checkPermission(filedes, i, 'r'); 
+		if (FileDescriptor::checkPermission(filedes, i , 'r')) {
+			if (start != -1){
+				end = i-1; 
+				int_list.push_back(Interval(start , end)); 
+				start = -1; 
+				end = -1; 
+			}
+			continue; 
+		}else{
+			if (start == -1)
+				start = i; 
+		}
+	}
+	if (start != -1 && end == -1) {
+		end = end_block_offset; 
+		int_list.push_back(Interval(start, end)); 
+	}
+
+	cout << "requesting read "; 
+	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+		cout << "(" << it->m_start << "," << it->m_end << ")"; 
+	}		
+	cout << endl; 
+	return 0 ; 
+
+	string response(""); 
+	for (int i = block_offset; i <= end_block_offset; i++){
+
 		bool hit = disk_cache.lookupBlockInCache(file_name, i);
 		blockT * bt;  
 		if (hit == true) {
@@ -176,9 +187,9 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 }
 size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
 	
-	fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
-	string file_name = ofdt_fetch_name   (filedes); 
-	string file_mode = ofdt_fetch_mode   (filedes); 
+	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe (filedes); 
+	string file_name = FileDescriptor::ofdt_fetch_name   (filedes); 
+	string file_mode = FileDescriptor::ofdt_fetch_mode   (filedes); 
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 	int n_blocks = end_block_offset - block_offset + 1 ;  
@@ -234,8 +245,8 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 int pfs_close(int filedes) {
 // FIXME do we need to send something to metadata manager for close? I don't think so. 
 /*
-	//fileRecipe *fr   = ofdt_fetch_recipe (filedes); 
-	string file_name = ofdt_fetch_name   (filedes);
+	//fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe (filedes); 
+	string file_name = FileDescriptor::ofdt_fetch_name   (filedes);
 
 	string servAddress = METADATA_ADDR;  
 	unsigned short servPort = METADATA_PORT; 
@@ -270,7 +281,7 @@ int pfs_close(int filedes) {
 */
 
 	// FIXME: call flusher for all block which has write token || blocks are in cache and dirty 
-	return ofdt_close_file(filedes); 	
+	return FileDescriptor::ofdt_close_file(filedes); 	
 } 
 int pfs_delete(const char * file_name) { 
 	string servAddress = METADATA_ADDR; 
@@ -293,7 +304,7 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 	string servAddress = METADATA_ADDR; 
 	unsigned short servPort = METADATA_PORT; 
 	
-	string file_name = ofdt_fetch_name (filedes); 
+	string file_name = FileDescriptor::ofdt_fetch_name (filedes); 
 
 	string command ("fstat "); 
 	command += file_name;  
