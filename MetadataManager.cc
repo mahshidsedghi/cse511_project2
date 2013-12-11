@@ -340,6 +340,8 @@ string execFunc_fstat(string arguments){
 }
 
 string execFunc_request_token(string arguments){ //FIXME <request_token,file_name,block_offset,mode>
+	cout << "request_token called with this arg: " << arguments << endl;
+
 	string file_name = nextToken(arguments);
 	int interval_start = atoi(nextToken(arguments).c_str());
 	int interval_end = atoi(nextToken(arguments).c_str());
@@ -480,15 +482,16 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
 		//FIXME
 			//if (*mdrtokens_it == interval) //overlap
-		}
+//		}
 
-		if (mdrtokens_it != fe.MDRTokens.end()) { //no reader//FIXME
-			Interval interval(0,UINT_MAX);
-			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
-		}
-		else { //there are some readers, so you need to revoke the tokens from them
-			while(mdrtokens_it != fe.MDRTokens.end()) { //FIXME: check if I am the not the writer
-//				mdwtokens_it ->   
+//		if (mdrtokens_it != fe.MDRTokens.end()) { //no reader//FIXME
+//			Interval interval(0,UINT_MAX);
+//			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
+//		}
+//		else { //there are some readers, so you need to revoke the tokens from them
+//			while(mdrtokens_it != fe.MDRTokens.end()) { //FIXME: check if I am the not the writer
+			interval = Interval(interval_start, interval_end);
+			if (tr1::get<0>(*it) == interval) {//if there is overlap 
 				reader_IP = tr1::get<1>(*mdrtokens_it);
 				reader_port = tr1::get<2>(*mdrtokens_it);
 				message = "";
@@ -496,10 +499,10 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
 				message += " ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-
+				message += mode + "";
 
 				try {
-					TCPSocket sock(writer_IP, writer_port);
+					TCPSocket sock(reader_IP, reader_port);
 	 				sock.send(message.c_str(), message.length());
 			
 					char echoBuffer[RCVBUFSIZE+1]; 
@@ -518,15 +521,19 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		    		cerr << e.what() << endl;
 		    		response="nack"; 
   				}
-			//do merging of intervals and call find again
-			//merge intervals
-			fe.MDWTokens.find(interval);
-			} //while
-			//now all writers are revoked
-			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
-		}
+			//FIXME:merge intervals
+			} //if
+		} //handle readers
+
 		//finally, give the client tokens
-		fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //what should be the interval?
+		//FIXME: what is interval exactly?
+		fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
+
+		response = "";
+		response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+		response += " ";
+		response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+		return response;
 	} //write mode
 	return "";
 }
