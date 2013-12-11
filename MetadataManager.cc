@@ -25,6 +25,7 @@
 #include <iostream>           // For cout, cerr
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
+#include <tuple>
 
 const int RCVBUFSIZE = 64;
 
@@ -335,34 +336,152 @@ string execFunc_fstat(string arguments){
 }
 
 string execFunc_request_token(string arguments){ //FIXME <request_token,file_name,block_offset,mode>
-	string filename = nextToken(arguments);
-	size_t block_offset = atoi(nextToken(arguments));
+	string file_name = nextToken(arguments);
+//	size_t block_offset = atoi(nextToken(arguments).c_str());
+	int interval_start = atoi(nextToken(arguments).c_str());
+	int interval_end = atoi(nextToken(arguments).c_str());
 	char mode = nextToken(arguments)[0];
+	string client_IP = nextToken(arguments);
+	int client_port  = atoi(nextToken(arguments).c_str());i
+	
+	
+	string message;
+	string writer_IP, reader_IP;
+	int writer_port, reader_port;
 
 	map<string, fileEntry>::iterator it; 
-	it = general_file_table.find(filename);
+	it = general_file_table.find(file_name);
 
 	if (it == general_file_table.end()) { //first reader/writer of the file
 		cout << "trying to get tokens for a non exisiting file!\n";
 		return "nack";
 	}
 	fileEntry fe = it->second;
-	Interval interval(block_offset, block_offset);
-	map<Interval,tuple<char,string,int> >::iterator mdtokens_it;
-	mdtokens_it = fe.MDTokens.find(interval);
+	Interval interval(interval_start, interval_end);
+	map<Interval,tr1::tuple<string,int> >::iterator mdwtokens_it;
 
-	if (mdtokens_it == fe.MDTokens.end()) //if interval does not exist in the table
-		//what to do?
-	else {//if interval exists
+	if(mode == 'r') { //client wants to read
+		mdwtokens_it = fe.MDWTokens.find(interval);
+		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
+			general_file_table[file_name].MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
+		}
+		else { //there are some writers, so you need to revoke the tokens from them
+			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
+//				mdwtokens_it ->   
+				writer_IP = mdwtokens_it->second.get<0>;
+				writer_port = mdwtokens_it->second.get<1>;
+				message = "";
+				message = "revoke " + string(interval_start) + " " + string(interval_end);
+				try {
+					TCPSocket sock(writer_IP, writer_port);
+	 				sock.send(message.c_str(), message.length());
+			
+					char echoBuffer[RCVBUFSIZE+1]; 
+					int recvMsgSize = 0;
+					
+					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+						cerr << "unable to recv "; 
+						response="nack"; 
+					}
+					else {
+						echoBuffer[recvMsgSize]='\0';
+						response = echoBuffer; 
+						MDWTokens.erase(interval); //remove the writers token
+					}
+				}catch(SocketException &e) {
+		    		cerr << e.what() << endl;
+		    		response="nack"; 
+  				}
+			//do merging of intervals and call find again
+			//merge intervals
+			fe.MDWTokens.find(interval);
+			} //while
+			//now all writers are revoked
+			MDRTokens.push_back(std::make_tuple(interval,client_IP,client_port));
+		}
+	} //read mode
 
-	}
-	
-
+	else if(mode == 'w') { //client wants to write
+		mdtokens_it = fei.MDWTokens.find(interval);
+		
+		//handle the writers first
+		if (mdwtokens_it == MDWTokens.end()) { //no writer
+			Interval interval(0,ULONG_MAX);
+			general_file_table[file_name].MDWTokens.insert(make_pair(interval,std::make_tuple(client_IP,client_port))); //add it to writers
+		else { //there are some writers, so you need to revoke the tokens from them
+			while(mdwtokens != MDWTokens.end()) { //FIXME: check if I am the not the writer
+//				mdwtokens_it ->   
+				writer_IP = mdwtokens_it->second.get<0>;
+				writer_port = mdwtokens_it->second.get<1>;
+				message = "";
+				message = "revoke " + string(interval_start) + " " + string(interval_end);
+				try {
+					TCPSocket sock(writer_IP, writer_port);
+	 				sock.send(message.c_str(), message.length());
+			
+					char echoBuffer[RCVBUFSIZE+1]; 
+					int recvMsgSize = 0;
+					
+					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+						cerr << "unable to recv "; 
+						response="nack"; 
+					}
+					else {
+						echoBuffer[recvMsgSize]='\0';
+						response = echoBuffer; 
+						MDWTokens.erase(interval); //remove the writers token
+					}
+				}catch(SocketException &e) {
+		    		cerr << e.what() << endl;
+		    		response="nack"; 
+  				}
+			//do merging of intervals and call find again
+			//merge intervals
+			fe.MDWTokens.find(interval);
+			} //while
+			//now all writers are revoked
+		}
+		
+		//then handle the readers
+		if (mdwtokens_it == MDWTokens.end()) { //no writer //FIXME
+			Interval interval(0,ULONG_MAX);
+			general_file_table[file_name].MDWTokens.insert(make_pair(interval,make_tuple(client_IP,client_port))); //add it to writers
+		else { //there are some readers, so you need to revoke the tokens from them
+			while(mdwtokens != MDWTokens.end()) { //FIXME: check if I am the not the writer
+//				mdwtokens_it ->   
+				reader_IP = mdwtokens_it->second.get<0>;
+				reader_port = mdwtokens_it->second.get<1>;
+				message = "";
+				message = "revoke " + string(interval_start) + " " + string(interval_end);
+				try {
+					TCPSocket sock(writer_IP, writer_port);
+	 				sock.send(message.c_str(), message.length());
+			
+					char echoBuffer[RCVBUFSIZE+1]; 
+					int recvMsgSize = 0;
+					
+					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+						cerr << "unable to recv "; 
+						response="nack"; 
+					}
+					else {
+						echoBuffer[recvMsgSize]='\0';
+						response = echoBuffer; 
+						MDWTokens.erase(interval); //remove the writers token
+					}
+				}catch(SocketException &e) {
+		    		cerr << e.what() << endl;
+		    		response="nack"; 
+  				}
+			//do merging of intervals and call find again
+			//merge intervals
+			fe.MDWTokens.find(interval);
+			} //while
+			//now all writers are revoked
+			fe.MDRTokens.push_back(make_tuple(interval,client_IP,client_port));
+		}
+		//finally, give the client tokens
+		fe.MDRTokens.insert(make_pair(interval,make_tuple(client_IP,client_port)); //what should be the interval?
+	} //write mode
 	return "";
-	//FIXME we might have to revoke some other client's token for this purpose
 }
-
-
-
-
-

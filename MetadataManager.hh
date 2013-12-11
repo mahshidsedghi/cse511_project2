@@ -7,6 +7,7 @@ void execFunc_write  ( string arguments );
 void execFunc_close  ( string arguments ); 
 string execFunc_delete ( string arguments ); 
 string execFunc_fstat  ( string arguments ); 
+string execFunc_request_token( string arguments );
 
 
 pair<string, int> FileServerList[NUM_FILE_SERVERS]; 

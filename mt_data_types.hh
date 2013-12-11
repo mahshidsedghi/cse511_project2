@@ -5,7 +5,8 @@
 #include <bitset>
 #include <map>
 #include "config.hh"
-
+#include <vector>
+#include <tr1/tuple>
 
 struct fileRecipe{
 	int stripeWidth; 	
@@ -32,6 +33,7 @@ struct fileRecipe{
 	}
 
 }; 
+
 struct Interval
 {
 	Interval(int start, int end)
@@ -63,13 +65,12 @@ public:
 	
 };
 
-
-
 struct fileEntry{
 	string file_name;
 	fileRecipe file_recipe;
 
-	map<Interval,tr1::tuple<char, string, int> > MDTokens; //map(key=interval,value=(mode,IP,port) )
+	map<Interval,tr1::tuple<string, int> > MDWTokens; //map(key=interval,value=(IP,port) ) for writers
+	vector<tr1::tuple<Interval, string, int> > MDRTokens;  //for readers
 	
 	fileEntry(string fn, fileRecipe fr){
 		file_name = fn; 
