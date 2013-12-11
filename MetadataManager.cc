@@ -365,6 +365,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	cout << "TOKEN_MNG: request_token called with this arg: " << arguments << endl;
 
 	string file_name = nextToken(arguments);
+	
 	int interval_start = atoi(trim(nextToken(arguments)).c_str());
 	int interval_end = atoi(trim(nextToken(arguments)).c_str());
 	char mode = trim(nextToken(arguments))[0];
@@ -449,7 +450,19 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	} //read mode
 
 	else if(mode == 'w') { //client wants to write
+		//revoke other writers
 		mdwtokens_it = fe.MDWTokens.find(interval);
+		while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
+			writer_IP = tr1::get<0>(mdwtokens_it->second);
+			writer_port = tr1::get<1>(mdwtokens_it->second);
+			message = "";
+			message += "revoke ";
+			message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			message += " ";
+			message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			try {
+				TCPSocket sock(writer_IP, writer_port);
+ 				sock.send(message.c_str(), message.length());
 		
 		//handle the writers first
 		while (mdwtokens_it != fe.MDWTokens.end()) { //no writer
@@ -493,7 +506,6 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
 			Interval interval2 = tr1::get<0>(*mdrtokens_it);  
 			if (interval.is_equal(interval2)) {//if there is overlap 
-				cout << " +++++++++++++++ found ovelap in read " << endl; 
 				reader_IP = tr1::get<1>(*mdrtokens_it);
 				reader_port = tr1::get<2>(*mdrtokens_it);
 			
@@ -505,19 +517,16 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				message += " ";
 				message += s;  
 
-				cout << "revoke message "  << message << endl; 
 				response = sendToServer(message, reader_IP, reader_port); 
-				cout << "response to revoke message " << response << endl; 
 				if (response != "nack"){
-					to_erase.push_back(mdrtokens_it); 
+					fe.MDRTokens.erase(mdrtokens_it);  
 					cout << "size after erase" << fe.MDRTokens.size() << endl;  
-						
+					mdrtokens_it--; 				
 				}
 				
 			} //if
-		} //handle readers
+		} //for
 
-		cout << "+++ after erase "  << endl; 
 		fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
 
 		response = "";
@@ -527,7 +536,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		return response;
 	} //write mode
 
-	return "";
+	return string("");
 }
 
 
