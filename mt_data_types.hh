@@ -62,36 +62,36 @@ struct Interval
 		return false; 
 
 	}
-	vector<Interval> subtract_interval(Interval in) {
-		int temp_start;
-		int temp_end;
+	vector<Interval> subtract_interval(Interval in) { 
 		vector<Interval> ret_vector;
 		if (!(!(m_end < in.m_start) && !(in.m_end < m_start))) {//no overlap, so return the original interval
 			Interval interval(m_start,m_end);
-			ret_vector.push_back(interval);
+			ret_vector.push_back(Interval(m_start,m_end));
 		}
 
-		//------------------ new
-		//	------	     old
-		else if ((in.m_start < m_start) && (in.m_end > m_end)) {
+		//new	--------------	------------	 ------------
+		//old	   ------	-----		 	-----
+		else if ((in.m_start <= m_start) && (in.m_end >= m_end)) {
 		}
 		
-		//    ----	     new
-		//------------       old
-		else if ((in.m_start > m_start) && (in.m_end < m_end)) {
-			ret_vector.push_back(Interval(m_start,in.m_start-1));
-			ret_vector.push_back(Interval(in.m_end+1,m_end));
+		//new     ----	      	 ----			-----
+		//old ------------ 	 ----------  	  ------------ 
+		else if ((in.m_start >= m_start) && (in.m_end <= m_end)) {
+			if (m_start != in.m_start)
+				ret_vector.push_back(Interval(m_start,in.m_start-1));
+			if (m_end != in.m_end)
+				ret_vector.push_back(Interval(in.m_end+1,m_end));
 		}
 
-		//-------	     new
-		//    ---------      old
-		else if ((in.m_start<m_start) && (in.m_end>m_start) && (in.m_end<m_end) ) {
+		//new  --------	           --------
+		//old      ---------     	  -------
+		else if ((in.m_start<m_start) && (in.m_end>=m_start) && (in.m_end<m_end) ) {
 			ret_vector.push_back(Interval(in.m_end+1,m_end));
 		}
 		
-		//    --------	     new
-		//-------	     old
-		else if ((m_start<in.m_start) && (m_end>in.m_start) && (m_end<in.m_end) ) {
+		//new       ---------		   ---------
+		//old	--------    	     -------
+		else if ((m_start<in.m_start) && (m_end>=in.m_start) && (m_end<in.m_end) ) {
 			ret_vector.push_back(Interval(m_start,in.m_end-1));
 		}
 		
