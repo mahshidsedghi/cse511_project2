@@ -430,6 +430,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		} //while
 			//now all writers are revoked
 			//now what are correct interval start and end?
+		/*
 		int new_start = 0;
 		int new_end = UINT_MAX; 
 		for ( map<Interval,tr1::tuple<string,int> >::iterator it = fe.MDWTokens.begin(); it != fe.MDWTokens.end(); ++it){
@@ -443,7 +444,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		
 		interval.m_start = new_start; 
 		interval.m_end = new_end; 
-		
+		*/
 		fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
 		response = "";
 		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
