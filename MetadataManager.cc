@@ -401,18 +401,28 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 
 			message = "";
 			message = "revoke " + file_name + " ";;
-			message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			message += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 			message += " ";
-			message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			message += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 			message += " "; 
 			string s; s.push_back(mode); 
 			message += s; 
 				
 			response = sendToServer(message, writer_IP, writer_port); 
 			cout << "TOKEN_MNG: send (" << message << ") to " << writer_IP << "," << writer_port << "("<< response<<") "<< endl; 
-			if (response != "nack")
+			if (response != "nack"){
+				tr1::tuple<string, int> temp = mdwtokens_it->second; 
+
+				Interval interval_old (mdwtokens_it->first.m_start, mdwtokens_it->first.m_end);
+				vector<Interval> sub_intervals = interval_old.subtract_interval(interval);
+					
 				fe.MDWTokens.erase(mdwtokens_it); //remove the writers token				
-		
+
+				for (int i = 0; i < sub_intervals.size(); i++){
+					fe.MDWTokens.insert(make_pair(sub_intervals[i], temp)); //remove the writers token				
+				}
+
+			}
 			mdwtokens_it = fe.MDWTokens.find(interval);
 					
 				//do merging of intervals and call find again
@@ -453,16 +463,29 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				writer_IP = tr1::get<0>(mdwtokens_it->second);
 				writer_port = tr1::get<1>(mdwtokens_it->second);
 				message = "revoke ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+				message += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 				message += " ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+				message += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 				message += " ";
 				string s; s.push_back(mode);  
 				message += s; 
 
 				response = sendToServer(message, writer_IP, writer_port); 
-				if (response != "nack")
-					fe.MDWTokens.erase(interval); //remove the writers token
+				if (response != "nack"){
+					tr1::tuple<string, int> temp = mdwtokens_it->second; 
+
+					Interval interval_old (mdwtokens_it->first.m_start, mdwtokens_it->first.m_end);
+					vector<Interval> sub_intervals = interval_old.subtract_interval(interval);
+					
+								
+
+					fe.MDWTokens.erase(mdwtokens_it); //remove the writers token				
+
+					for (int i = 0; i < sub_intervals.size(); i++){
+						fe.MDWTokens.insert(make_pair(sub_intervals[i], temp)); //remove the writers token				
+					}
+
+				}
 				//do merging of intervals and call find again
 				//merge intervals
 				mdwtokens_it = fe.MDWTokens.find(interval);
@@ -492,17 +515,33 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				reader_port = tr1::get<2>(*mdrtokens_it);
 			
 				message = "revoke ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval2.m_start ))->str();
+				message += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 				message += " ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval2.m_end ))->str();
+				message += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 				string s; s.push_back(mode); 
 				message += " ";
 				message += s;  
 
 				response = sendToServer(message, reader_IP, reader_port); 
 				if (response != "nack"){
-					mdrtokens_it = fe.MDRTokens.erase(mdrtokens_it);  
-					mdrtokens_it--; 				
+	
+//					tr1::tuple<string, int> temp = mdrtokens_it->second; 
+					
+					Interval interval_old (tr1::get<0>(*mdrtokens_it).m_start,tr1::get<0>(*mdrtokens_it).m_end); 
+					vector<Interval> sub_intervals = interval_old.subtract_interval(interval);
+					
+
+					mdrtokens_it = fe.MDRTokens.erase(mdrtokens_it); //remove the writers token				
+					// FIXME 
+
+					for (int i = 0; i < sub_intervals.size(); i++){
+						fe.MDRTokens.push_back(tr1::make_tuple(sub_intervals[i], reader_IP, reader_port)); //remove the writers token				
+					}
+					
+				//	if (mdrtokens_it != fe.MDRTokens.begin()){
+					mdrtokens_it--; 
+				//	}
+
 				}
 				
 			} //if
