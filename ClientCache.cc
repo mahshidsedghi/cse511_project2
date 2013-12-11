@@ -10,8 +10,8 @@ size_t ClientCache::clientID = 0;
 
 size_t ClientCache::LAST_ACCESS = 0;
 
-ClientCache::ClientCache(){
 
+ClientCache::ClientCache(){
 	clientID++; 
 	int rc;
 	stringstream errMsg;
@@ -104,8 +104,22 @@ void* ClientCache::flushingFunc(){
 	return 0; 
 }
 void* ClientCache::revokingFunc(){
-	unsigned short servPort =  REVOKER_PORT;  
+	int servPort = -1; 
+	for (int i = 0; i < 5; i++){
+		cout << "------ " << revoker_ports[i] << endl; 
+		if (!port_is_open(revoker_ports[i])){
+			servPort = revoker_ports[i]; 
+			break;
+		}
+	}
+	if (servPort == -1) {
+		cout << "cannot create revoker " << endl; 
+		return 0;
+	}
+	
+	revoker_port = servPort; 
  
+
 	cout << "revoker is waiting on port " << servPort << endl;  
     try {
      	TCPServerSocket servSock(servPort);   // Socket descriptor for server    
@@ -147,10 +161,10 @@ void ClientCache::HandleRevoker(TCPSocket *sock) {
 	echoBuffer[recvMsgSize] = '\0'; 
 	recvCommand += echoBuffer; 
 
+	cout << "command: " << recvCommand << endl; 
   	string command = nextToken(recvCommand); 
   	command = toLower(command); 
 
-	cout << "command: " << command << endl; 
 
   	if ( command == "revoke" ){
 		string file_name = nextToken(recvCommand); 

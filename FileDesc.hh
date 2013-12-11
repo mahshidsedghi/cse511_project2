@@ -27,7 +27,6 @@ class FileDescriptor {
 private: 
 	static int next_file_descriptor;  
 	static OpenFile_Entry OFDT[MAX_NUM_FILES];
-
 public:
 	static void ofdt_print_all(); 
 	static int ofdt_open_file(fileRecipe * file_recipe, string file_name, string file_mode);
