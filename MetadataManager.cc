@@ -121,7 +121,8 @@ void HandleTCPClient(TCPSocket *sock) {
   	else if ( command == "fstat"  )
 		response = execFunc_fstat  (recvCommand); 
   	else if ( command == "request_token") //FIXME
-		response = execFunc_request_token  (recvCommand); //FIXME
+		response = execFunc_request_token  (recvCommand + " " + sock->getForeignAddress()); //FIXME
+	cout << "response from MDM :" << response << endl;
 
   	sock->send(response.c_str(), response.length());
   	
@@ -340,14 +341,11 @@ string execFunc_fstat(string arguments){
 
 string execFunc_request_token(string arguments){ //FIXME <request_token,file_name,block_offset,mode>
 	string file_name = nextToken(arguments);
-//	size_t block_offset = atoi(nextToken(arguments).c_str());
 	int interval_start = atoi(nextToken(arguments).c_str());
 	int interval_end = atoi(nextToken(arguments).c_str());
 	char mode = nextToken(arguments)[0];
-	string client_IP = nextToken(arguments); //get rid of this one
-//	FIXME: string client_IP = get from input;
 	int client_port  = atoi(nextToken(arguments).c_str()); //revoker port
-	
+	string client_IP = nextToken(arguments); 
 	
 	string message;
 	string response;
@@ -369,8 +367,13 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	if(mode == 'r') { //client wants to read
 		mdwtokens_it = fe.MDWTokens.find(interval);
 		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
+			cout << "first ever to use token " << endl;
 			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
-//			general_file_table[file_name].MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
+			response = "";
+			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			response += " ";
+			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			return response;
 		}
 		else { //there are some writers, so you need to revoke the tokens from them
 			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
@@ -379,11 +382,11 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				writer_port = tr1::get<1>(mdwtokens_it->second);
 
 				message = "";
-				message = "revoke ";
+				message = "revoke " + file_name + " ";;
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
 				message += " ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-
+				message += mode + "";
 				try {
 					TCPSocket sock(writer_IP, writer_port);
 	 				sock.send(message.c_str(), message.length());
@@ -409,8 +412,16 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 			fe.MDWTokens.find(interval);
 			} //while
 			//now all writers are revoked
+			//now what are correct interval start and end?
+			//interval_start = ?
+			//interval_end = ?
 			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
-		}
+			response = "";
+			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			response += " ";
+			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			return response;
+		} //else
 	} //read mode
 
 	else if(mode == 'w') { //client wants to write
@@ -420,6 +431,13 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
 			Interval interval(0,MAX_INT);
 			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
+			//interval_start
+			//interval_end
+			response = "";
+			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			response += " ";
+			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			return response;
 		}
 		else { //there are some writers, so you need to revoke the tokens from them
 			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
