@@ -25,7 +25,7 @@ endif
 
 AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_types.hh mt_data_types.hh net_addresses.hh 
 
-all: ClientLibrary MetadataManager FileServer copy 
+all: test_case MetadataManager FileServer  copy 
 
 test_case: test_client.cc PracticalSocket.cc ClientCache.cc ClientLibrary.cc 
 	$(CXX) $(CXXFLAGS) -o test_client PracticalSocket.cc  ClientCache.cc ClientLibrary.cc test_client.cc -lpthread 
@@ -38,11 +38,11 @@ test_case: test_client.cc PracticalSocket.cc ClientCache.cc ClientLibrary.cc
 #ClientLibrary: ClientLibrary.cc ClientCache PracticalSocket $(AUX_H)
 #	$(CXX) $(CXXFLAGS) -o  PracticalSocket.cc ClientCache.cc ClientLibrary.cc -lpthread
 
-#MetadataManager: MetadataManager.cc MetadataManager.hh PracticalSocket $(AUX_H) 
-#	$(CXX) -D_GNU_SOURCE -o MetadataManager MetadataManager.cc  PracticalSocke.cc $(LIBS) -lpthread
+MetadataManager: MetadataManager.cc MetadataManager.hh PracticalSocket.cc $(AUX_H) 
+	$(CXX) -D_GNU_SOURCE -o MetadataManager MetadataManager.cc  PracticalSocke.cc $(LIBS) -lpthread
 
-#FileServer: FileServer.cc PracticalSocket $(AUX_H) 
-#	$(CXX) -o FileServer FileServer.cc PracticalSocket.cc $(LIBS) -lpthread 
+FileServer: FileServer.cc PracticalSocket.cc $(AUX_H) 
+	$(CXX) -o FileServer FileServer.cc PracticalSocket.cc $(LIBS) -lpthread 
 
 clean:
 	$(RM) ClientLibrary MetadataManager FileServer 
