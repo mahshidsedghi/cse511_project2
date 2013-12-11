@@ -394,6 +394,8 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	if(mode == 'r') { //client wants to read
 		mdwtokens_it = fe.MDWTokens.find(interval);
 		while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
+			
+			cout << " there is a writer need to revoke  " << endl; 
 			writer_IP = tr1::get<0>(mdwtokens_it->second);
 			writer_port = tr1::get<1>(mdwtokens_it->second);
 

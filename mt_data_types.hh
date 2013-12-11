@@ -118,7 +118,7 @@ struct fileEntry{
 	string file_name;
 	fileRecipe file_recipe;
 
-	map<Interval,tr1::tuple<string, int> > MDWTokens; //map(key=interval,value=(IP,port) ) for writers
+	map<Interval,tr1::tuple<string, int> ,mycomparison> MDWTokens; //map(key=interval,value=(IP,port) ) for writers
 	vector<tr1::tuple<Interval, string, int> > MDRTokens;  //for readers
 	
 	fileEntry(string fn, fileRecipe fr){
