@@ -520,18 +520,23 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				message += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 				message += " ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
-				string s; s.push_back(mode); 
+				string s;
+				s.push_back(mode); 
 				message += " ";
 				message += s;  
 
-				response = sendToServer(message, reader_IP, reader_port); 
+				response = sendToServer(message, reader_IP, reader_port);
+				cout<< "revoke request sent to :" << "reader IP:" << reader_IP<< ",reader_port:" << reader_port << endl;
 				if (response != "nack"){
 	
 //					tr1::tuple<string, int> temp = mdrtokens_it->second; 
 					
 					Interval interval_old (tr1::get<0>(*mdrtokens_it).m_start,tr1::get<0>(*mdrtokens_it).m_end); 
 					vector<Interval> sub_intervals = interval_old.subtract_interval(interval);
-					
+					cout << "sub_interval.size():" << sub_intervals.size() << endl;
+
+					for(int j=0;j<sub_intervals.size();j++)
+						cout <<"sub_interval[" << j <<"]: " << sub_intervals[j].toString() << endl;
 
 					mdrtokens_it = fe.MDRTokens.erase(mdrtokens_it); //remove the writers token				
 					// FIXME 
