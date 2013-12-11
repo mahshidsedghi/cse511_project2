@@ -27,8 +27,8 @@ AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_ty
 
 all: test_case MetadataManager FileServer  copy 
 
-test_case: test_client.cc PracticalSocket.cc ClientCache.cc ClientLibrary.cc 
-	$(CXX) $(CXXFLAGS) -o test_client PracticalSocket.cc  ClientCache.cc ClientLibrary.cc test_client.cc -lpthread 
+test: test_client.cc pfs.hh FileDesc.hh PracticalSocket.cc ClientCache.cc pfs.cc 
+	$(CXX) $(CXXFLAGS) -o test_client PracticalSocket.cc  ClientCache.cc pfs.cc test_client.cc -lpthread 
 
 
 #PracticalSocket: PracticalSocket.cc 
@@ -39,13 +39,13 @@ test_case: test_client.cc PracticalSocket.cc ClientCache.cc ClientLibrary.cc
 #	$(CXX) $(CXXFLAGS) -o  PracticalSocket.cc ClientCache.cc ClientLibrary.cc -lpthread
 
 MetadataManager: MetadataManager.cc MetadataManager.hh PracticalSocket.cc $(AUX_H) 
-	$(CXX) -D_GNU_SOURCE -o MetadataManager MetadataManager.cc  PracticalSocke.cc $(LIBS) -lpthread
+	$(CXX) -D_GNU_SOURCE -o MetadataManager MetadataManager.cc  PracticalSocket.cc $(LIBS) -lpthread
 
 FileServer: FileServer.cc PracticalSocket.cc $(AUX_H) 
 	$(CXX) -o FileServer FileServer.cc PracticalSocket.cc $(LIBS) -lpthread 
 
 clean:
-	$(RM) ClientLibrary MetadataManager FileServer 
+	$(RM) test_client MetadataManager FileServer 
 
 TCPEchoClient: TCPEchoClient.cc PracticalSocket.cc PracticalSocket.hh
 	$(CXX) $(CXXFLAGS) -o TCPEchoClient TCPEchoClient.cc PracticalSocket.cc $(LIBS)

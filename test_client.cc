@@ -1,8 +1,32 @@
+#include <iostream>
 
 #include "pfs.hh"
+//#include "FileDesc.hh"
+using namespace std; 
 
 int main(){
+
+	// TEST CREATE 
+	string file_name = "test_file.txt"; 
+	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
+	else 	
+		return 1; 
+	cout << "---------------------------------------------------------" << endl; 
+	// TEST OPEN 
+	int fdes = pfs_open(file_name.c_str(), 'r');  
+	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
+	
+//	addPermission(fdes, 0, 10, 'r'); 
+	//addPermission(fdes, 0, 10, 'r'); 
+	//addPermission(fdes, 0, 10, 'r'); 
+	//addPermission(fdes, 0, 10, 'r'); 
+	
+
+
+
+
 	//ofdt_print_all(); 
+
 
 /*	blockT b1;
 	b1.file_name = "baghali.txt";
