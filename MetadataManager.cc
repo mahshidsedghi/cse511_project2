@@ -25,7 +25,10 @@
 #include <iostream>           // For cout, cerr
 #include <cstdlib>            // For atoi()  
 #include <pthread.h>          // For POSIX threads  
-#include <tuple>
+#include <tr1/tuple>
+#include <limits.h>
+//#include <utility>
+#define MAX_INT UINT_MAX
 
 const int RCVBUFSIZE = 64;
 
@@ -341,11 +344,13 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	int interval_start = atoi(nextToken(arguments).c_str());
 	int interval_end = atoi(nextToken(arguments).c_str());
 	char mode = nextToken(arguments)[0];
-	string client_IP = nextToken(arguments);
-	int client_port  = atoi(nextToken(arguments).c_str());i
+	string client_IP = nextToken(arguments); //get rid of this one
+//	FIXME: string client_IP = get from input;
+	int client_port  = atoi(nextToken(arguments).c_str()); //revoker port
 	
 	
 	string message;
+	string response;
 	string writer_IP, reader_IP;
 	int writer_port, reader_port;
 
@@ -356,22 +361,29 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		cout << "trying to get tokens for a non exisiting file!\n";
 		return "nack";
 	}
-	fileEntry fe = it->second;
+	fileEntry& fe = it->second;
 	Interval interval(interval_start, interval_end);
 	map<Interval,tr1::tuple<string,int> >::iterator mdwtokens_it;
+	vector<tr1::tuple<Interval,string,int> >::iterator mdrtokens_it;
 
 	if(mode == 'r') { //client wants to read
 		mdwtokens_it = fe.MDWTokens.find(interval);
 		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
-			general_file_table[file_name].MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
+			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
+//			general_file_table[file_name].MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
 		}
 		else { //there are some writers, so you need to revoke the tokens from them
 			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
 //				mdwtokens_it ->   
-				writer_IP = mdwtokens_it->second.get<0>;
-				writer_port = mdwtokens_it->second.get<1>;
+				writer_IP = tr1::get<0>(mdwtokens_it->second);
+				writer_port = tr1::get<1>(mdwtokens_it->second);
+
 				message = "";
-				message = "revoke " + string(interval_start) + " " + string(interval_end);
+				message = "revoke ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+				message += " ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+
 				try {
 					TCPSocket sock(writer_IP, writer_port);
 	 				sock.send(message.c_str(), message.length());
@@ -386,7 +398,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 					else {
 						echoBuffer[recvMsgSize]='\0';
 						response = echoBuffer; 
-						MDWTokens.erase(interval); //remove the writers token
+						fe.MDWTokens.erase(interval); //remove the writers token
 					}
 				}catch(SocketException &e) {
 		    		cerr << e.what() << endl;
@@ -397,24 +409,28 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 			fe.MDWTokens.find(interval);
 			} //while
 			//now all writers are revoked
-			MDRTokens.push_back(std::make_tuple(interval,client_IP,client_port));
+			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
 		}
 	} //read mode
 
 	else if(mode == 'w') { //client wants to write
-		mdtokens_it = fei.MDWTokens.find(interval);
+		mdwtokens_it = fe.MDWTokens.find(interval);
 		
 		//handle the writers first
-		if (mdwtokens_it == MDWTokens.end()) { //no writer
-			Interval interval(0,ULONG_MAX);
-			general_file_table[file_name].MDWTokens.insert(make_pair(interval,std::make_tuple(client_IP,client_port))); //add it to writers
+		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
+			Interval interval(0,MAX_INT);
+			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
+		}
 		else { //there are some writers, so you need to revoke the tokens from them
-			while(mdwtokens != MDWTokens.end()) { //FIXME: check if I am the not the writer
+			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
 //				mdwtokens_it ->   
-				writer_IP = mdwtokens_it->second.get<0>;
-				writer_port = mdwtokens_it->second.get<1>;
+				writer_IP = tr1::get<0>(mdwtokens_it->second);
+				writer_port = tr1::get<1>(mdwtokens_it->second);
 				message = "";
-				message = "revoke " + string(interval_start) + " " + string(interval_end);
+				message += "revoke ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+				message += " ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
 				try {
 					TCPSocket sock(writer_IP, writer_port);
 	 				sock.send(message.c_str(), message.length());
@@ -429,7 +445,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 					else {
 						echoBuffer[recvMsgSize]='\0';
 						response = echoBuffer; 
-						MDWTokens.erase(interval); //remove the writers token
+						fe.MDWTokens.erase(interval); //remove the writers token
 					}
 				}catch(SocketException &e) {
 		    		cerr << e.what() << endl;
@@ -443,16 +459,27 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		}
 		
 		//then handle the readers
-		if (mdwtokens_it == MDWTokens.end()) { //no writer //FIXME
-			Interval interval(0,ULONG_MAX);
-			general_file_table[file_name].MDWTokens.insert(make_pair(interval,make_tuple(client_IP,client_port))); //add it to writers
+		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
+		//FIXME
+			//if (*mdrtokens_it == interval) //overlap
+		}
+
+		if (mdrtokens_it != fe.MDRTokens.end()) { //no reader//FIXME
+			Interval interval(0,UINT_MAX);
+			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
+		}
 		else { //there are some readers, so you need to revoke the tokens from them
-			while(mdwtokens != MDWTokens.end()) { //FIXME: check if I am the not the writer
+			while(mdrtokens_it != fe.MDRTokens.end()) { //FIXME: check if I am the not the writer
 //				mdwtokens_it ->   
-				reader_IP = mdwtokens_it->second.get<0>;
-				reader_port = mdwtokens_it->second.get<1>;
+				reader_IP = tr1::get<1>(*mdrtokens_it);
+				reader_port = tr1::get<2>(*mdrtokens_it);
 				message = "";
-				message = "revoke " + string(interval_start) + " " + string(interval_end);
+				message += "revoke ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+				message += " ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+
+
 				try {
 					TCPSocket sock(writer_IP, writer_port);
 	 				sock.send(message.c_str(), message.length());
@@ -467,7 +494,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 					else {
 						echoBuffer[recvMsgSize]='\0';
 						response = echoBuffer; 
-						MDWTokens.erase(interval); //remove the writers token
+						fe.MDWTokens.erase(interval); //remove the writers token
 					}
 				}catch(SocketException &e) {
 		    		cerr << e.what() << endl;
@@ -478,10 +505,10 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 			fe.MDWTokens.find(interval);
 			} //while
 			//now all writers are revoked
-			fe.MDRTokens.push_back(make_tuple(interval,client_IP,client_port));
+			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
 		}
 		//finally, give the client tokens
-		fe.MDRTokens.insert(make_pair(interval,make_tuple(client_IP,client_port)); //what should be the interval?
+		fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //what should be the interval?
 	} //write mode
 	return "";
 }
