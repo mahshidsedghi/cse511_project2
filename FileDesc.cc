@@ -297,7 +297,9 @@ string FileDescriptor::revokePermission(string file_name, int start, int end, ch
 	TOKEN_MAP& tok_map = FileDescriptor::OFDT[file_desc].tokens; 
 	Interval in(start, end); 
 
-	// FIXME 
+	// if I have it 
+	// ifi don't have it 
+	// FIXME 	 
 
 	string response = static_cast<ostringstream*>( &(ostringstream() << start ))->str(); 
 	response += " "; 

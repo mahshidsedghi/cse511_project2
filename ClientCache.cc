@@ -10,6 +10,7 @@ size_t ClientCache::clientID = 0;
 size_t ClientCache::LAST_ACCESS = 0;
 
 ClientCache::ClientCache(){
+
 	clientID++; 
 	int rc;
 	stringstream errMsg;
@@ -30,6 +31,14 @@ ClientCache::ClientCache(){
 	if(rc)
 	{
 		errMsg << "Could not create flusher thread in client cache ID:" << clientID;
+		throw runtime_error(errMsg.str());
+	}
+	
+
+	rc = pthread_create(&revoker, NULL, &ClientCache::callRevokingFunc, this);
+	if(rc)
+	{
+		errMsg << "Could not create revoker thread in client cache ID:" << clientID;
 		throw runtime_error(errMsg.str());
 	}
 
@@ -93,7 +102,28 @@ void* ClientCache::flushingFunc(){
 	}
 	return 0; 
 }
+void* ClientCache::revokingFunc(){
+	unsigned short servPort =  REVOKER_PORT;  
+ 
+	cout << "revoker is waiting on port " << servPort << endl;  
+    try {
+     	TCPServerSocket servSock(servPort);   // Socket descriptor for server    
+    	for (;;) {      // Run forever  
+      		// Create separate memory for client argument  
+      		TCPSocket *clntSock = servSock.accept(); 
+			
 
+
+
+     	}
+  	} catch (SocketException &e) {
+    	cerr << e.what() << endl;
+    	exit(1);
+  	}
+  	// NOT REACHED
+
+	return 0; 
+}
 void ClientCache::insertSingleBlockIntoCache(blockT b) {
 //	assert(freeSpace.size() + usedSpace.size() <= BUFFER_CACHE_CAPACITY);
 	if (!freeSpace.empty()) {
