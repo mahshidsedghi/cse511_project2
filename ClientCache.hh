@@ -24,6 +24,8 @@
 
 class ClientCache{
 public:
+	
+	int revoker_port; 
 	static size_t clientID;
 	ClientCache();
 	static size_t LAST_ACCESS;

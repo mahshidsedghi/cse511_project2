@@ -7,16 +7,10 @@
 #include <string>
  
 using namespace std;
-
-
 #define ONEKB 1024
-
-
 #define RCVBUFSIZE 32    // Size of receive buffer
 
-
 ClientCache disk_cache;
-
 
 string sendToServer(string input_str, string IP, int port){
 	string response; 	
@@ -52,7 +46,7 @@ string requestToken(string file_name, int start, int end, char mode ){
 	command += " ";
 	command += mode; 
 	command += " ";  
-	command += static_cast<ostringstream*>( &(ostringstream() << REVOKER_PORT ))->str(); 
+	command += static_cast<ostringstream*>( &(ostringstream() << disk_cache.revoker_port ))->str(); 
 
 
 	cout << "request token command(" << command << ")" << endl; 
@@ -226,7 +220,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		
 	return strlen((char *)buf); // FIXME: if nbytes read is less than available bytes  
 }
-size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
+ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
 	
 	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe (filedes); 
 	string file_name = FileDescriptor::ofdt_fetch_name   (filedes); 

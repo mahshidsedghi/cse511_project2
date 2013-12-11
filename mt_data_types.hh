@@ -42,7 +42,7 @@ struct Interval
     	{}
         int m_start;
         int m_end;
-	inline bool operator<(const Interval& in) const
+	bool operator<(const Interval& in) const
 	{
 		if (m_start < in.m_start)
 			return true; 
@@ -50,6 +50,13 @@ struct Interval
 			return true; 
 		return false; 
 	}
+	bool operator==(const Interval& in) const 
+	{
+		if (!(m_end < in1.m_start) && !(in1.m_end < m_start))
+			return true; 
+		return false; 
+	}
+	
 };
 
 class mycomparison
