@@ -50,7 +50,7 @@ struct Interval
 			return true; 
 		return false; 
 	}
-	bool operator==(const Interval& in) const 
+	bool operator==(const Interval& in1) const 
 	{
 		if (!(m_end < in1.m_start) && !(in1.m_end < m_start))
 			return true; 

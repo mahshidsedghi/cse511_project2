@@ -348,6 +348,8 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	char mode = nextToken(arguments)[0];
 	int client_port  = atoi(nextToken(arguments).c_str()); //revoker port
 	string client_IP = nextToken(arguments); 
+
+	cout <<"int end "<<interval_end <<"mode "<< mode <<"IP "<< client_IP << endl;
 	
 	string message;
 	string response;
@@ -427,80 +429,55 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	} //read mode
 
 	else if(mode == 'w') { //client wants to write
+		//revoke other writers
 		mdwtokens_it = fe.MDWTokens.find(interval);
+		while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
+			writer_IP = tr1::get<0>(mdwtokens_it->second);
+			writer_port = tr1::get<1>(mdwtokens_it->second);
+			message = "";
+			message += "revoke ";
+			message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			message += " ";
+			message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			try {
+				TCPSocket sock(writer_IP, writer_port);
+ 				sock.send(message.c_str(), message.length());
 		
-		//handle the writers first
-		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
-			Interval interval(0,MAX_INT);
-			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
-			//interval_start
-			//interval_end
-			response = "";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
-			response += " ";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-			return response;
-		}
-		else { //there are some writers, so you need to revoke the tokens from them
-			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
-//				mdwtokens_it ->   
-				writer_IP = tr1::get<0>(mdwtokens_it->second);
-				writer_port = tr1::get<1>(mdwtokens_it->second);
-				message = "";
-				message += "revoke ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
-				message += " ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-				try {
-					TCPSocket sock(writer_IP, writer_port);
-	 				sock.send(message.c_str(), message.length());
-			
-					char echoBuffer[RCVBUFSIZE+1]; 
-					int recvMsgSize = 0;
-					
-					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-						cerr << "unable to recv "; 
-						response="nack"; 
-					}
-					else {
-						echoBuffer[recvMsgSize]='\0';
-						response = echoBuffer; 
-						fe.MDWTokens.erase(interval); //remove the writers token
-					}
-				}catch(SocketException &e) {
-		    		cerr << e.what() << endl;
-		    		response="nack"; 
-  				}
-			//do merging of intervals and call find again
+				char echoBuffer[RCVBUFSIZE+1]; 
+				int recvMsgSize = 0;
+				
+				if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+					cerr << "unable to recv "; 
+					response="nack"; 
+				}
+				else {
+					echoBuffer[recvMsgSize]='\0';
+					response = echoBuffer; 
+					fe.MDWTokens.erase(interval); //remove the writers token
+				}
+			}catch(SocketException &e) {
+	    		cerr << e.what() << endl;
+	    		response="nack"; 
+  			}
+		//do merging of intervals and call find again
 			//merge intervals
-			fe.MDWTokens.find(interval);
-			} //while
-			//now all writers are revoked
-		}
-		
-		//then handle the readers
+		fe.MDWTokens.find(interval);
+		} //while
+	
+	
+		//revoke other readers
 		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
-		//FIXME
-			//if (*mdrtokens_it == interval) //overlap
-//		}
-
-//		if (mdrtokens_it != fe.MDRTokens.end()) { //no reader//FIXME
-//			Interval interval(0,UINT_MAX);
-//			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
-//		}
-//		else { //there are some readers, so you need to revoke the tokens from them
-//			while(mdrtokens_it != fe.MDRTokens.end()) { //FIXME: check if I am the not the writer
 			interval = Interval(interval_start, interval_end);
 			if (tr1::get<0>(*mdrtokens_it) == interval) {//if there is overlap 
 				reader_IP = tr1::get<1>(*mdrtokens_it);
 				reader_port = tr1::get<2>(*mdrtokens_it);
-				message = "";
-				message += "revoke ";
+				message = "revoke ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
 				message += " ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-				message += mode + "";
-
+				message += " ";
+				message += string(1,mode);
+				cout << "revoke message to reader: " << message << endl;
 				try {
 					TCPSocket sock(reader_IP, reader_port);
 	 				sock.send(message.c_str(), message.length());
@@ -515,7 +492,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 					else {
 						echoBuffer[recvMsgSize]='\0';
 						response = echoBuffer; 
-						fe.MDWTokens.erase(interval); //remove the writers token
+						fe.MDRTokens.erase(mdrtokens_it); //remove the readers token FIXME: ONLY TAKEOUT SOME PARTS OF TOKEN NOT ALL OF IT!
 					}
 				}catch(SocketException &e) {
 		    		cerr << e.what() << endl;
@@ -523,11 +500,12 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
   				}
 			//FIXME:merge intervals
 			} //if
-		} //handle readers
+		} //for
 
 		//finally, give the client tokens
 		//FIXME: what is interval exactly?
-		fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
+//		Interval interval(0,MAX_INT);
+		fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
 
 		response = "";
 		response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
