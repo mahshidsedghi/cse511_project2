@@ -491,6 +491,8 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				mdwtokens_it = fe.MDWTokens.find(interval);
 		 } //while
 		 //now all writers are revoked
+		
+		/*
 		unsigned int new_start = 0;
 		unsigned int new_end = UINT_MAX; 
 		for ( map<Interval,tr1::tuple<string,int> >::iterator it = fe.MDWTokens.begin(); it != fe.MDWTokens.end(); ++it){
@@ -501,11 +503,11 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				break; // the first one after interval  
 			}
 		} 
-		
+
 
 		interval.m_start = new_start; 
 		interval.m_end = new_end; 	
-
+		*/
 		//then handle the readers
 		vector<tr1::tuple<Interval,string,int> > to_erase; 
 		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {

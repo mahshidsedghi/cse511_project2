@@ -236,11 +236,11 @@ ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int 
 		int_list.push_back(Interval(start, end)); 
 	}
 
-	//cout << "requesting write "; 
-	//for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
-	//	cout << "(" << it->m_start << "," << it->m_end << ")"; 
-//	}		
-//	cout << endl; 
+	cout << "requesting write "; 
+	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+		cout << "(" << it->m_start << "," << it->m_end << ")"; 
+	}		
+	cout << endl; 
 
 	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
 		string token = requestToken(file_name, it->m_start, it->m_end, 'w');
