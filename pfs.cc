@@ -17,6 +17,7 @@ using namespace std;
 
 ClientCache disk_cache;
 
+
 string sendToServer(string input_str, string IP, int port){
 	string response; 	
 	try{
@@ -42,18 +43,23 @@ string sendToServer(string input_str, string IP, int port){
 
 string requestToken(string file_name, int start, int end, char mode ){
 	
-	string command = "request_token "; 
+	string command = "request_token ";
+	command += file_name;
+	command += " ";   
 	command += static_cast<ostringstream*>( &(ostringstream() << start ))->str(); 
-	command += " " ; 
+	command += " "; 
 	command += static_cast<ostringstream*>( &(ostringstream() << end ))->str(); 
-	command += " " ; 
+	command += " ";
+	command += mode; 
+	command += " ";  
 	command += static_cast<ostringstream*>( &(ostringstream() << REVOKER_PORT ))->str(); 
 
 
+	cout << "request token command(" << command << ")" << endl; 
 	string servAddress = METADATA_ADDR; 
 	int    servPort    = METADATA_PORT;
 	string response = sendToServer(command, servAddress, servPort );
-	
+	cout << "request token response(" << response << ")" << endl; 
 	return response;  
 }
 

@@ -6,6 +6,7 @@
 #include <list>
 #include "data_types.hh"
 #include "PracticalSocket.hh"
+#include "FileDesc.hh"
 #include <pthread.h>
 #include <sstream>
 #include <tr1/unordered_map>
@@ -39,6 +40,12 @@ public:
 		//pthread_detach(pthread_self()); 
 		return ((ClientCache*)arg) -> flushingFunc();
 	}
+	void *revokingFunc(void);
+	static void *callRevokingFunc(void* arg){
+		return ((ClientCache*)arg) -> revokingFunc(); 
+	}
+
+	void HandleRevoker(TCPSocket *sock); 
 	
 	void insertSingleBlockIntoCache(blockT); //cache a new block
 	void insertMultipleBlocksIntoCache(blockT*,size_t);
@@ -57,6 +64,7 @@ private:
 	std::tr1::unordered_map<LBA,blockT> usedSpace; //only for clean and dirty blocks
 	pthread_t harvester;
 	pthread_t flusher;
+	pthread_t revoker; 
 };
 
 #endif
