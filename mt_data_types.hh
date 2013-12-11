@@ -66,7 +66,7 @@ struct Interval
 		int temp_start;
 		int temp_end;
 		vector<Interval> ret_vector;
-		if !(!(m_end < in.m_start) && !(in.m_end < m_start)) {//no overlap, so return the original interval
+		if (!(!(m_end < in.m_start) && !(in.m_end < m_start))) {//no overlap, so return the original interval
 			Interval interval(m_start,m_end);
 			ret_vector.push_back(interval);
 		}
