@@ -42,6 +42,19 @@ struct Interval
     	{}
         unsigned int m_start;
         unsigned int m_end;
+
+	string toString(){
+		string start = static_cast<ostringstream*>( &(ostringstream() << m_start ))->str();
+		string end = static_cast<ostringstream*>( &(ostringstream() << m_end ))->str();
+
+		string str = "("; 
+		str += start; 
+		str +=  ","; 
+		str += end;
+		str += ")";  
+		return str; 
+
+	}
 	bool operator<(const Interval& in) const
 	{
 		if (m_start < in.m_start)
