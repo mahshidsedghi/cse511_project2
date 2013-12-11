@@ -282,6 +282,29 @@ void FileDescriptor::addPermission(int fdesc, int start, int end, char mode){
 
 }
 
+string FileDescriptor::revokePermission(string file_name, int start, int end, char mode){
+	int file_desc = -1; 
+	for (int i = 0; i < MAX_NUM_FILES; i++){
+		if (OFDT[i].name == file_name) 
+			file_desc = i; 
+	} 	
+	if (file_desc == -1 || OFDT[file_desc].open == false){
+		string response = "0 "; 
+		response += static_cast<ostringstream*>( &(ostringstream() << MAX_BLOCK_NUMBER ))->str(); 
+		return response;
+	}
+	
+	TOKEN_MAP& tok_map = FileDescriptor::OFDT[file_desc].tokens; 
+	Interval in(start, end); 
+
+	// FIXME 
+
+	string response = static_cast<ostringstream*>( &(ostringstream() << start ))->str(); 
+	response += " "; 
+	response += static_cast<ostringstream*>( &(ostringstream() << end ))->str(); 
+	return response;  
+}
+
 bool FileDescriptor::checkPermission(int fdesc, int block, char mode){	
 
 

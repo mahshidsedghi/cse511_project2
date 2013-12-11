@@ -19,14 +19,17 @@ int main(){
 	int fdes = pfs_open(file_name.c_str(), 'r');  
 	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
 
-	FileDescriptor::addPermission(fdes, 0,10, 'r'); 
-	FileDescriptor::printTokens(fdes); 
-	cout << FileDescriptor::checkPermission(fdes, 3, 'r') << endl;  
+	//FileDescriptor::addPermission(fdes, 2,2, 'r'); 
+	// cout << FileDescriptor::checkPermission(fdes, 3, 'r') << endl;  
 	
 	// TEST READ 
+	
+
 	char * buf =  (char *)malloc(1*1024);
 	pfs_read(fdes, (void *)buf, 4*1024, 0, 0); 
 
+	FileDescriptor::printTokens(fdes); 
+	
 	//cout << "(" << buf  << ")"<< endl; 
 	//cout << "---------------------------------------------------------" << endl; 
 	

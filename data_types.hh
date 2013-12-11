@@ -6,7 +6,7 @@
 #include <limits.h>
 #include "config.hh"
 
-#define MAX_BLOCK_NUMBER ULONG_MAX
+#define MAX_BLOCK_NUMBER UINT_MAX
 
 typedef size_t LBA; //Logical Block Address (LBA) type
 //typedef std::pair<std::string,size_t> LBA; //Logical Block Address (LBA) type

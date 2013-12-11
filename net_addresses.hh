@@ -10,6 +10,9 @@ using namespace std;
 #define MAMBERAMO_ADDR 		"130.203.40.73"
 #define TITAN_ADDR 		"130.203.59.10"
 
+
+#define REVOKER_PORT 	6666
+
 //#define SERVER0_ADDR 	MAMBERAMO_ADDR
 #define SERVER0_ADDR 	TITAN_ADDR
 #define SERVER0_PORT 	1111

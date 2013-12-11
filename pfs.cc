@@ -40,6 +40,24 @@ string sendToServer(string input_str, string IP, int port){
 	return response; 
 }
 
+string requestToken(string file_name, int start, int end, char mode ){
+	
+	string command = "request_token "; 
+	command += static_cast<ostringstream*>( &(ostringstream() << start ))->str(); 
+	command += " " ; 
+	command += static_cast<ostringstream*>( &(ostringstream() << end ))->str(); 
+	command += " " ; 
+	command += static_cast<ostringstream*>( &(ostringstream() << REVOKER_PORT ))->str(); 
+
+
+	string servAddress = METADATA_ADDR; 
+	int    servPort    = METADATA_PORT;
+	string response = sendToServer(command, servAddress, servPort );
+	
+	return response;  
+}
+
+
 // Library functions 
 
 int pfs_create(const char * file_name, int stripe_width){
@@ -124,15 +142,10 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 
-	cout << "file desc " << filedes << endl; 
-	cout << FileDescriptor::checkPermission(filedes, 3, 'r') << endl; 
-	
-	
 	int start = -1; 
 	int end = -1; 
 	vector<Interval> int_list; 
 	for (int i = block_offset; i <= end_block_offset; i++){
-		cout << i << " " << FileDescriptor::checkPermission(filedes, i, 'r'); 
 		if (FileDescriptor::checkPermission(filedes, i , 'r')) {
 			if (start != -1){
 				end = i-1; 
@@ -156,11 +169,33 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		cout << "(" << it->m_start << "," << it->m_end << ")"; 
 	}		
 	cout << endl; 
-	return 0 ; 
+
+	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+		string token = requestToken(file_name, it->m_start, it->m_end, 'r');
+		int tok_start = atoi(trim(nextToken(token)).c_str());
+		int tok_end   = atoi(trim(nextToken(token)).c_str());
+ 
+		if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
+		else {
+			cout << "cloudn't get the token for (" << it->m_start << ","<< it->m_end <<")"<< endl; 
+		}
+	}	
 
 	string response(""); 
 	for (int i = block_offset; i <= end_block_offset; i++){
-
+		bool permit = FileDescriptor::checkPermission(filedes, i, 'r');
+		if (!permit){ 	
+			string token = requestToken(file_name, i, i , 'r'); 
+			int tok_start = atoi(trim(nextToken(token)).c_str());
+			int tok_end   = atoi(trim(nextToken(token)).c_str());
+ 
+			if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
+			else {
+				cout << "I can't get grant for block "<< i << ", leave me alone! " << endl; 
+				return 0; 
+			}
+		}
+		
 		bool hit = disk_cache.lookupBlockInCache(file_name, i);
 		blockT * bt;  
 		if (hit == true) {
@@ -190,10 +225,51 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe (filedes); 
 	string file_name = FileDescriptor::ofdt_fetch_name   (filedes); 
 	string file_mode = FileDescriptor::ofdt_fetch_mode   (filedes); 
+
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 
+
+
+	int start = -1; 
+	int end = -1; 
+	vector<Interval> int_list; 
+	for (int i = block_offset; i <= end_block_offset; i++){
+		if (FileDescriptor::checkPermission(filedes, i , 'w')) {
+			if (start != -1){
+				end = i-1; 
+				int_list.push_back(Interval(start , end)); 
+				start = -1; 
+				end = -1; 
+			}
+			continue; 
+		}else{
+			if (start == -1)
+				start = i; 
+		}
+	}
+	if (start != -1 && end == -1) {
+		end = end_block_offset; 
+		int_list.push_back(Interval(start, end)); 
+	}
+
+	cout << "requesting write "; 
+	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+		cout << "(" << it->m_start << "," << it->m_end << ")"; 
+	}		
+	cout << endl; 
+
+	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+		string token = requestToken(file_name, it->m_start, it->m_end, 'w');
+		int tok_start = atoi(trim(nextToken(token)).c_str());
+		int tok_end   = atoi(trim(nextToken(token)).c_str());
+ 
+		if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'w'); 
+		else {
+			cout << "cloudn't get the token for (" << it->m_start << ","<< it->m_end <<")"<< endl; 
+		}
+	}	
 
 	int off_start = 0;
 	int off_end = 0; 
@@ -209,6 +285,19 @@ size_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *
 			 off_start = offset % (PFS_BLOCK_SIZE * ONEKB); 
 		else
 			 off_start = 0; 
+
+		bool permit = FileDescriptor::checkPermission(filedes, i, 'w');
+		if (!permit){ 	
+			string token = requestToken(file_name, i, i , 'w'); 
+			int tok_start = atoi(trim(nextToken(token)).c_str());
+			int tok_end   = atoi(trim(nextToken(token)).c_str());
+ 
+			if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'w'); 
+			else {
+				cout << "I can't get grant for block "<< i << ", leave me alone! " << endl; 
+				return 0; 
+			}
+		}
 	
 		bool hit = disk_cache.lookupBlockInCache(file_name, i);
 		blockT * bt;  

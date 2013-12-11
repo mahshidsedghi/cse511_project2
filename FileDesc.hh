@@ -3,6 +3,7 @@
 
 #include "data_types.hh"
 #include <iostream>
+#include <sstream>
 #include <map>
 
 using namespace std; 
@@ -29,7 +30,6 @@ private:
 
 public:
 	static void ofdt_print_all(); 
-
 	static int ofdt_open_file(fileRecipe * file_recipe, string file_name, string file_mode);
 	static int ofdt_close_file(int fdesc);
 	static fileRecipe * ofdt_fetch_recipe(int fdesc);
@@ -38,7 +38,7 @@ public:
 	static void addPermission(int fdesc, int start, int end, char mode);
 	static bool checkPermission(int fdesc, int block, char mode);
 	static void printTokens	(int fdesc);
-
+	static string revokePermission(string file_name, int start, int end, char mode); 
 };
 
  
