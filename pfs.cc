@@ -49,11 +49,11 @@ string requestToken(string file_name, int start, int end, char mode ){
 	command += static_cast<ostringstream*>( &(ostringstream() << disk_cache.revoker_port ))->str(); 
 
 
-	cout << "request token command(" << command << ")" << endl; 
+	cout << "CLIENT_TOKEN (" << command << ")";  
 	string servAddress = METADATA_ADDR; 
 	int    servPort    = METADATA_PORT;
 	string response = sendToServer(command, servAddress, servPort );
-	cout << "request token response(" << response << ")" << endl; 
+	cout << "(" << response << ")" << endl; 
 	return response;  
 }
 
@@ -70,12 +70,12 @@ int pfs_create(const char * file_name, int stripe_width){
 	command += static_cast<ostringstream*>( &(ostringstream() << stripe_width ))->str(); 
 	command += "\0"; 	
 
-	// cout << command << endl; 
 	int commandLen = command.length(); 
 
+	cout << "CLIENT_CREATE (" << command << ")"; 
 	string response = sendToServer(command, servAddress, servPort);  	
 	
-	cout << response << endl; 
+	cout << "(" << response<< ")" << endl; 
 
 	if (toLower(response) == "success") 
 		return 1; 
@@ -92,33 +92,11 @@ int pfs_open(const char * file_name, const char mode){
 	command += mode; 
 	command += "\0"; 	
 
-	// cout << command << endl; 
+	cout << "TOKEN_OPEN (" << command << ")";  
 	int commandLen = command.length(); 
 
 	string response = sendToServer(command, servAddress, servPort); 	
-	/*
-	string response; 	
-	try{
-		TCPSocket sock(servAddress, servPort);
- 		sock.send(command.c_str(), commandLen); 
-	
-		char echoBuffer[RCVBUFSIZE+1]; 
-		int recvMsgSize = 0;
-		
-
-		// should receive a lot of data from metadata manager 
-		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-			cerr << "unable to open "; 
-			exit(1); 
-		}
- 
-		echoBuffer[recvMsgSize]='\0'; 
-		response = echoBuffer; 
-	}catch(SocketException &e) {
-    		cerr << e.what() << endl;
-    		exit(1);
-  	}
-	*/
+	cout << "(" << response << ")" << endl; 
 	string file_rec_str = response; 
 
 	int st_width   = atoi(nextToken(file_rec_str).c_str()); 	
@@ -164,11 +142,11 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		int_list.push_back(Interval(start, end)); 
 	}
 
-	cout << "requesting read "; 
-	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
-		cout << "(" << it->m_start << "," << it->m_end << ")"; 
-	}		
-	cout << endl; 
+	
+	//for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+	//	cout << "(" << it->m_start << "," << it->m_end << ")"; 
+	//}		
+//	cout << endl; 
 
 	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
 		string token = requestToken(file_name, it->m_start, it->m_end, 'r');
@@ -218,7 +196,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 
 	strcpy((char *)buf, response.substr(off_first, nbyte).c_str());  
 		
-	return strlen((char *)buf); // FIXME: if nbytes read is less than available bytes  
+	return strlen((char *)buf);
 }
 ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
 	
@@ -254,11 +232,11 @@ ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int 
 		int_list.push_back(Interval(start, end)); 
 	}
 
-	cout << "requesting write "; 
-	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
-		cout << "(" << it->m_start << "," << it->m_end << ")"; 
-	}		
-	cout << endl; 
+	//cout << "requesting write "; 
+	//for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+	//	cout << "(" << it->m_start << "," << it->m_end << ")"; 
+//	}		
+//	cout << endl; 
 
 	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
 		string token = requestToken(file_name, it->m_start, it->m_end, 'w');
@@ -332,43 +310,6 @@ ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int 
 }
 
 int pfs_close(int filedes) {
-// FIXME do we need to send something to metadata manager for close? I don't think so. 
-/*
-	//fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe (filedes); 
-	string file_name = FileDescriptor::ofdt_fetch_name   (filedes);
-
-	string servAddress = METADATA_ADDR;  
-	unsigned short servPort = METADATA_PORT; 
-	
-	string command ("close "); 
-	command += file_name;  
-	command += "\0"; 	
-
-	// cout << command << endl; 
-	int commandLen = command.length(); 
-
-	string response; 	
-	try{
-		TCPSocket sock(servAddress, servPort);
- 		sock.send(command.c_str(), commandLen); 
-	
-		char echoBuffer[RCVBUFSIZE+1]; 
-		int recvMsgSize = 0;
-		
-		// should receive a lot of data from metadata manager 
-		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-			cerr << "unable to recv "; 
-			exit(1); 
-		}
- 
-		echoBuffer[recvMsgSize]='\0'; 
-		response = echoBuffer; 
-	}catch(SocketException &e) {
-    		cerr << e.what() << endl;
-    		exit(1);
-  	}
-*/
-
 	// FIXME: call flusher for all block which has write token || blocks are in cache and dirty 
 	return FileDescriptor::ofdt_close_file(filedes); 	
 } 
@@ -380,7 +321,6 @@ int pfs_delete(const char * file_name) {
 	command += file_name;  
 	command += "\0"; 
 
-	// cout << command << endl; 
 	int commandLen = command.length(); 
 
 	string response = sendToServer(command, servAddress, servPort); 
@@ -399,7 +339,6 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 	command += file_name;  
 	command += "\0"; 
 
-	// cout << command << endl; 
 	int commandLen = command.length(); 
 
 	string response = sendToServer(command, servAddress, servPort); 

@@ -294,12 +294,7 @@ string FileDescriptor::revokePermission(string file_name, int start, int end, ch
 		return response;
 	}
 	
-	TOKEN_MAP& tok_map = FileDescriptor::OFDT[file_desc].tokens; 
-	Interval in(start, end); 
-
-	// if I have it 
-	// ifi don't have it 
-	// FIXME 	 
+	removePermission(file_desc, start, end, mode); 
 
 	string response = static_cast<ostringstream*>( &(ostringstream() << start ))->str(); 
 	response += " "; 
@@ -309,10 +304,7 @@ string FileDescriptor::revokePermission(string file_name, int start, int end, ch
 
 bool FileDescriptor::checkPermission(int fdesc, int block, char mode){	
 
-
 	TOKEN_MAP& tok_map = FileDescriptor::OFDT[fdesc].tokens; 	
-
-
 
 	Interval bl_int (block, block);
 	
@@ -345,4 +337,96 @@ void FileDescriptor::printTokens	(int fdesc){
 	
 	cout << " ======= " << endl; 	
 }
- 
+void FileDescriptor::removePermission(int fdesc, int start, int end, char mode){
+
+	TOKEN_MAP &tok_map = FileDescriptor::OFDT[fdesc].tokens; 
+	
+	Interval bl_int (start, end); 
+	bool dont_add = false; 
+	
+	while (tok_map.find(bl_int) != tok_map.end()){ // when it has overlap 
+		TOKEN_MAP::iterator it = tok_map.find(bl_int);
+		if (it->first.m_start > bl_int.m_start){
+			if (it->first.m_end < bl_int.m_end){ 
+				// new  ----------  				 
+				// old    ----     
+				tok_map.erase(it); 
+				continue;
+
+			}else if (it->first.m_end == bl_int.m_end){
+				// new -------------
+				// old    ----------
+				tok_map.erase(it); 
+				continue;
+
+			}else if (it->first.m_end > bl_int.m_end){
+				// new -------------
+				// old     -------------
+				Interval temp_int(bl_int.m_end + 1, it->first.m_end); 
+				char it_mode = it->second; 
+				tok_map.erase(it); 
+				tok_map.insert(make_pair(temp_int, it_mode)); 
+
+				continue;
+			}
+		
+		}else if (it->first.m_start == bl_int.m_start){
+			if (it->first.m_end < bl_int.m_end){
+				// new ------------------
+				// old -------
+				tok_map.erase(it); 
+				continue;
+	
+			}else if (it->first.m_end == bl_int.m_end){
+				// new ------------------
+				// old ------------------
+				tok_map.erase(it); 
+				continue;  
+					
+			}else if (it->first.m_end > bl_int.m_end){
+				// new ------------
+				// old ------------------
+				Interval temp_int (bl_int.m_end + 1, it->first.m_end); 
+				char it_mode = it->second; 
+				tok_map.erase(it); 
+				tok_map.insert(make_pair(temp_int, it_mode)); 
+				continue;
+			}
+		}else if  (it->first.m_start < bl_int.m_start){
+			if (it->first.m_end < bl_int.m_end){
+				// new      ----------
+				// old --------- 
+				Interval temp_int (it->first.m_start, bl_int.m_start - 1); 
+				char it_mode = it->second; 
+				tok_map.erase(it); 
+				tok_map.insert(make_pair(temp_int, it_mode)); 
+				continue;	
+			}else if (it->first.m_end == bl_int.m_end){
+				// new        ------------
+				// old     ---------------
+				Interval temp_int (it->first.m_start, bl_int.m_start - 1); 
+				char it_mode = it->second; 
+				tok_map.erase(it); 
+				tok_map.insert(make_pair(temp_int, it_mode)); 
+				continue; 	
+			}else if (it->first.m_end > bl_int.m_end){
+				// new 	  ----------
+				// old -------------------	
+				Interval temp_int1(it->first.m_start, bl_int.m_start - 1); 
+				Interval temp_int2(bl_int.m_end + 1, it->first.m_end); 
+				
+				int it_mode = it->second; 	
+				tok_map.erase(it); 
+				tok_map.insert(make_pair(temp_int1, it_mode));
+				tok_map.insert(make_pair(temp_int2, it_mode));
+				 
+				continue;
+			}
+		
+		}
+	
+	}
+
+}
+
+

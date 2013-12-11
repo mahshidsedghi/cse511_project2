@@ -106,7 +106,6 @@ void* ClientCache::flushingFunc(){
 void* ClientCache::revokingFunc(){
 	int servPort = -1; 
 	for (int i = 0; i < 5; i++){
-		cout << "------ " << revoker_ports[i] << endl; 
 		if (!port_is_open(revoker_ports[i])){
 			servPort = revoker_ports[i]; 
 			break;
@@ -178,6 +177,8 @@ void ClientCache::HandleRevoker(TCPSocket *sock) {
 	else {
 		cout << "command has to be revoke!" << endl; 
 	}
+  }else {
+		cout << "don't recieve anything " << endl; 
   }
 
 }

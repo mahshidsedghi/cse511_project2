@@ -38,6 +38,7 @@ public:
 	static bool checkPermission(int fdesc, int block, char mode);
 	static void printTokens	(int fdesc);
 	static string revokePermission(string file_name, int start, int end, char mode); 
+	static void removePermission(int fdesc, int start, int end, char mode); 
 };
 
  
