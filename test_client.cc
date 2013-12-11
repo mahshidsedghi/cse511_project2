@@ -1,31 +1,36 @@
 #include <iostream>
 
 #include "pfs.hh"
-//#include "FileDesc.hh"
+
 using namespace std; 
 
 int main(){
 
+
+	FileDescriptor::ofdt_print_all(); 
+
 	// TEST CREATE 
 	string file_name = "test_file.txt"; 
-	if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
-	else 	
-		return 1; 
-	cout << "---------------------------------------------------------" << endl; 
+	//if (pfs_create(file_name.c_str(), 1) > 0)  cout << "successful creation of " << file_name << "!" << endl << endl; 
+	//else 	
+	//	return 1; 
+	//cout << "---------------------------------------------------------" << endl; 
 	// TEST OPEN 
 	int fdes = pfs_open(file_name.c_str(), 'r');  
 	cout << "open file: " << file_name << " with file descriptor: " << fdes << endl << endl ; 
+
+	FileDescriptor::addPermission(fdes, 0,10, 'r'); 
+	FileDescriptor::printTokens(fdes); 
+	cout << FileDescriptor::checkPermission(fdes, 3, 'r') << endl;  
 	
-//	addPermission(fdes, 0, 10, 'r'); 
-	//addPermission(fdes, 0, 10, 'r'); 
-	//addPermission(fdes, 0, 10, 'r'); 
-	//addPermission(fdes, 0, 10, 'r'); 
+	// TEST READ 
+	char * buf =  (char *)malloc(1*1024);
+	pfs_read(fdes, (void *)buf, 4*1024, 0, 0); 
+
+	//cout << "(" << buf  << ")"<< endl; 
+	//cout << "---------------------------------------------------------" << endl; 
 	
 
-
-
-
-	//ofdt_print_all(); 
 
 
 /*	blockT b1;
