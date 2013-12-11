@@ -36,12 +36,12 @@ struct blockT {
 };
 struct Interval
 {
-	Interval(int start, int end)
+	Interval(unsigned int start, unsigned int end)
     	: m_start(start),
           m_end(end)
     	{}
-        int m_start;
-        int m_end;
+        unsigned int m_start;
+        unsigned int m_end;
 	inline bool operator<(const Interval& in) const
 	{
 		if (m_start < in.m_start)

@@ -36,12 +36,12 @@ struct fileRecipe{
 
 struct Interval
 {
-	Interval(int start, int end)
+	Interval(unsigned int start, unsigned int end)
     	: m_start(start),
           m_end(end)
     	{}
-        int m_start;
-        int m_end;
+        unsigned int m_start;
+        unsigned int m_end;
 	bool operator<(const Interval& in) const
 	{
 		if (m_start < in.m_start)
@@ -52,9 +52,15 @@ struct Interval
 	}
 	bool operator==(const Interval& in) const 
 	{
-		if (!(m_end < in1.m_start) && !(in1.m_end < m_start))
+		if (!(m_end < in.m_start) && !(in.m_end < m_start))
 			return true; 
 		return false; 
+	}
+	bool is_equal(Interval in){
+		if (!(m_end < in.m_start) && !(in.m_end < m_start))
+			return true; 
+		return false; 
+
 	}
 	
 };

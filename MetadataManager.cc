@@ -140,7 +140,29 @@ void *ThreadMain(void *clntSock) {
   delete (TCPSocket *) clntSock;
   return NULL;
 }
-
+string sendToServer(string message, string IP, int port){
+	string response; 
+	try {
+		TCPSocket sock(IP, port);
+	 	sock.send(message.c_str(), message.length());
+			
+		char echoBuffer[RCVBUFSIZE+1]; 
+		int recvMsgSize = 0;
+					
+		if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
+			cerr << "unable to recv "; 
+			response="nack"; 
+		}
+		else {
+			echoBuffer[recvMsgSize]='\0';
+			response = echoBuffer; 
+		}
+	}catch(SocketException &e) {
+		cerr << e.what() << endl;
+		response="exception"; 
+  	}
+	return response; 
+}
 string execFunc_create(string arguments){
 
 	string filename     = trim(nextToken(arguments)); 
@@ -340,25 +362,27 @@ string execFunc_fstat(string arguments){
 }
 
 string execFunc_request_token(string arguments){ //FIXME <request_token,file_name,block_offset,mode>
-	cout << "request_token called with this arg: " << arguments << endl;
+	cout << "TOKEN_MNG: request_token called with this arg: " << arguments << endl;
 
 	string file_name = nextToken(arguments);
-	int interval_start = atoi(nextToken(arguments).c_str());
-	int interval_end = atoi(nextToken(arguments).c_str());
-	char mode = nextToken(arguments)[0];
-	int client_port  = atoi(nextToken(arguments).c_str()); //revoker port
-	string client_IP = nextToken(arguments); 
+	int interval_start = atoi(trim(nextToken(arguments)).c_str());
+	int interval_end = atoi(trim(nextToken(arguments)).c_str());
+	char mode = trim(nextToken(arguments))[0];
+	int client_port  = atoi(trim(nextToken(arguments)).c_str()); //revoker port
+	string client_IP = trim(nextToken(arguments)); 
+	
+	cout << "TOKEN_MNG: " << file_name << " " << interval_start << " " << interval_end << " " << mode; 
+	cout << " " << client_port << " " << client_IP << endl; 
 	
 	string message;
 	string response;
 	string writer_IP, reader_IP;
 	int writer_port, reader_port;
 
-	map<string, fileEntry>::iterator it; 
-	it = general_file_table.find(file_name);
+	map<string, fileEntry>::iterator it = general_file_table.find(file_name);
 
 	if (it == general_file_table.end()) { //first reader/writer of the file
-		cout << "trying to get tokens for a non exisiting file!\n";
+		cout << "TOKEN_MNG: trying to get tokens for a non exisiting file!\n";
 		return "nack";
 	}
 	fileEntry& fe = it->second;
@@ -369,12 +393,13 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	if(mode == 'r') { //client wants to read
 		mdwtokens_it = fe.MDWTokens.find(interval);
 		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
-			cout << "first ever to use token " << endl;
+			cout << "TOKEN_MNG: no writer token " << endl;
+			// FIXME: give from first to end of file 
 			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port)); //add it to readers
 			response = "";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			response += static_cast<ostringstream*>( &(ostringstream() << 0/*interval_start*/ ))->str();
 			response += " ";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			response += static_cast<ostringstream*>( &(ostringstream() << UINT_MAX /*interval_end*/ ))->str();
 			return response;
 		}
 		else { //there are some writers, so you need to revoke the tokens from them
@@ -388,40 +413,37 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
 				message += " ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-				message += mode + "";
-				try {
-					TCPSocket sock(writer_IP, writer_port);
-	 				sock.send(message.c_str(), message.length());
-			
-					char echoBuffer[RCVBUFSIZE+1]; 
-					int recvMsgSize = 0;
-					
-					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-						cerr << "unable to recv "; 
-						response="nack"; 
-					}
-					else {
-						echoBuffer[recvMsgSize]='\0';
-						response = echoBuffer; 
-						fe.MDWTokens.erase(interval); //remove the writers token
-					}
-				}catch(SocketException &e) {
-		    		cerr << e.what() << endl;
-		    		response="nack"; 
-  				}
-			//do merging of intervals and call find again
-			//merge intervals
-			fe.MDWTokens.find(interval);
+				message += " "; 
+				string s; s.push_back(mode); 
+				message += s; 
+				cout << "TOKEN_MNG: send " << message << " to " << writer_IP << "," << writer_port << endl; 
+				
+				response = sendToServer(message, writer_IP, writer_port); 
+				if (response != "nack")
+					fe.MDWTokens.erase(mdwtokens_it); //remove the writers token
+				//do merging of intervals and call find again
+				//merge intervals
 			} //while
 			//now all writers are revoked
 			//now what are correct interval start and end?
-			//interval_start = ?
-			//interval_end = ?
+			int new_start = 0;
+			int new_end = UINT_MAX; 
+			for ( map<Interval,tr1::tuple<string,int> >::iterator it = fe.MDWTokens.begin(); it != fe.MDWTokens.end(); ++it){
+				if (it->first.m_end < interval.m_start)
+					new_start = it->first.m_end + 1; 
+				if (it->first.m_start > interval.m_end ){
+					new_end = it->first.m_start - 1;
+					break; // the first one after interval  
+				}
+			} 
+			
+			interval.m_start = new_start; 
+			interval.m_end = new_end; 
 			fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
 			response = "";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+			response += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 			response += " ";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+			response += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 			return response;
 		} //else
 	} //read mode
@@ -430,110 +452,82 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		mdwtokens_it = fe.MDWTokens.find(interval);
 		
 		//handle the writers first
-		if (mdwtokens_it == fe.MDWTokens.end()) { //no writer
-			Interval interval(0,MAX_INT);
-			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
-			//interval_start
-			//interval_end
-			response = "";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
-			response += " ";
-			response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-			return response;
-		}
-		else { //there are some writers, so you need to revoke the tokens from them
-			while(mdwtokens_it != fe.MDWTokens.end()) { //FIXME: check if I am the not the writer
-//				mdwtokens_it ->   
+		while (mdwtokens_it != fe.MDWTokens.end()) { //no writer
+			 //there are some writers, so you need to revoke the tokens from them
+			 	cout << "+++++++++++++ write overlap " << endl; 
 				writer_IP = tr1::get<0>(mdwtokens_it->second);
 				writer_port = tr1::get<1>(mdwtokens_it->second);
-				message = "";
-				message += "revoke ";
+				message = "revoke ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
 				message += " ";
 				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-				try {
-					TCPSocket sock(writer_IP, writer_port);
-	 				sock.send(message.c_str(), message.length());
-			
-					char echoBuffer[RCVBUFSIZE+1]; 
-					int recvMsgSize = 0;
-					
-					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-						cerr << "unable to recv "; 
-						response="nack"; 
-					}
-					else {
-						echoBuffer[recvMsgSize]='\0';
-						response = echoBuffer; 
-						fe.MDWTokens.erase(interval); //remove the writers token
-					}
-				}catch(SocketException &e) {
-		    		cerr << e.what() << endl;
-		    		response="nack"; 
-  				}
-			//do merging of intervals and call find again
-			//merge intervals
-			fe.MDWTokens.find(interval);
-			} //while
-			//now all writers are revoked
-		}
-		
-		//then handle the readers
-		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
-		//FIXME
-			//if (*mdrtokens_it == interval) //overlap
-//		}
+				message += " ";
+				string s; s.push_back(mode);  
+				message += s; 
 
-//		if (mdrtokens_it != fe.MDRTokens.end()) { //no reader//FIXME
-//			Interval interval(0,UINT_MAX);
-//			fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
-//		}
-//		else { //there are some readers, so you need to revoke the tokens from them
-//			while(mdrtokens_it != fe.MDRTokens.end()) { //FIXME: check if I am the not the writer
-			interval = Interval(interval_start, interval_end);
-			if (tr1::get<0>(*mdrtokens_it) == interval) {//if there is overlap 
+				response = sendToServer(message, writer_IP, writer_port); 
+				if (response != "nack")
+					fe.MDWTokens.erase(interval); //remove the writers token
+				//do merging of intervals and call find again
+				//merge intervals
+				mdwtokens_it = fe.MDWTokens.find(interval);
+		 } //while
+		 //now all writers are revoked
+		unsigned int new_start = 0;
+		unsigned int new_end = UINT_MAX; 
+		for ( map<Interval,tr1::tuple<string,int> >::iterator it = fe.MDWTokens.begin(); it != fe.MDWTokens.end(); ++it){
+			if (it->first.m_end < interval.m_start)
+				new_start = it->first.m_end + 1; 
+			if (it->first.m_start > interval.m_end ){
+				new_end = it->first.m_start - 1;
+				break; // the first one after interval  
+			}
+		} 
+		
+
+		interval.m_start = new_start; 
+		interval.m_end = new_end; 	
+
+		//then handle the readers
+		vector<tr1::tuple<Interval,string,int> > to_erase; 
+		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
+			Interval interval2 = tr1::get<0>(*mdrtokens_it);  
+			if (interval.is_equal(interval2)) {//if there is overlap 
+				cout << " +++++++++++++++ found ovelap in read " << endl; 
 				reader_IP = tr1::get<1>(*mdrtokens_it);
 				reader_port = tr1::get<2>(*mdrtokens_it);
-				message = "";
-				message += "revoke ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
-				message += " ";
-				message += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
-				message += mode + "";
-
-				try {
-					TCPSocket sock(reader_IP, reader_port);
-	 				sock.send(message.c_str(), message.length());
 			
-					char echoBuffer[RCVBUFSIZE+1]; 
-					int recvMsgSize = 0;
-					
-					if ((recvMsgSize = (sock.recv(echoBuffer,RCVBUFSIZE))) <=0 ){
-						cerr << "unable to recv "; 
-						response="nack"; 
-					}
-					else {
-						echoBuffer[recvMsgSize]='\0';
-						response = echoBuffer; 
-						fe.MDWTokens.erase(interval); //remove the writers token
-					}
-				}catch(SocketException &e) {
-		    		cerr << e.what() << endl;
-		    		response="nack"; 
-  				}
-			//FIXME:merge intervals
+				message = "revoke ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval2.m_start ))->str();
+				message += " ";
+				message += static_cast<ostringstream*>( &(ostringstream() << interval2.m_end ))->str();
+				string s; s.push_back(mode); 
+				message += " ";
+				message += s;  
+
+				cout << "revoke message "  << message << endl; 
+				response = sendToServer(message, reader_IP, reader_port); 
+				cout << "response to revoke message " << response << endl; 
+				if (response != "nack"){
+					to_erase.push_back(mdrtokens_it); 
+					cout << "size after erase" << fe.MDRTokens.size() << endl;  
+						
+				}
+				
 			} //if
 		} //handle readers
 
-		//finally, give the client tokens
-		//FIXME: what is interval exactly?
-		fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
+		cout << "+++ after erase "  << endl; 
+		fe.MDWTokens.insert(make_pair(interval,tr1::make_tuple(client_IP,client_port))); //add it to writers
 
 		response = "";
-		response += static_cast<ostringstream*>( &(ostringstream() << interval_start ))->str();
+		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 		response += " ";
-		response += static_cast<ostringstream*>( &(ostringstream() << interval_end ))->str();
+		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 		return response;
 	} //write mode
+
 	return "";
 }
+
+

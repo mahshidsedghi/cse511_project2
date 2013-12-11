@@ -49,9 +49,9 @@ string requestToken(string file_name, int start, int end, char mode ){
 	command += static_cast<ostringstream*>( &(ostringstream() << disk_cache.revoker_port ))->str(); 
 
 
-	cout << "CLIENT_TOKEN (" << command << ")";  
 	string servAddress = METADATA_ADDR; 
 	int    servPort    = METADATA_PORT;
+	cout << "CLIENT_TOKEN (" << command << ")";  
 	string response = sendToServer(command, servAddress, servPort );
 	cout << "(" << response << ")" << endl; 
 	return response;  
@@ -143,18 +143,20 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	}
 
 	
-	//for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
-	//	cout << "(" << it->m_start << "," << it->m_end << ")"; 
-	//}		
-//	cout << endl; 
+	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
+		cout << "NEED_TOKEN (" << it->m_start << "," << it->m_end << ")"; 
+	}		
+	cout << endl; 
 
 	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
 		string token = requestToken(file_name, it->m_start, it->m_end, 'r');
-		int tok_start = atoi(trim(nextToken(token)).c_str());
-		int tok_end   = atoi(trim(nextToken(token)).c_str());
  
-		if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
-		else {
+		if(toLower(token) != "nack"){
+			int tok_start = atoi(trim(nextToken(token)).c_str());
+			int tok_end   = atoi(trim(nextToken(token)).c_str());
+			FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
+			FileDescriptor::printTokens(filedes); 
+		}else {
 			cout << "cloudn't get the token for (" << it->m_start << ","<< it->m_end <<")"<< endl; 
 		}
 	}	
@@ -164,11 +166,13 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		bool permit = FileDescriptor::checkPermission(filedes, i, 'r');
 		if (!permit){ 	
 			string token = requestToken(file_name, i, i , 'r'); 
-			int tok_start = atoi(trim(nextToken(token)).c_str());
-			int tok_end   = atoi(trim(nextToken(token)).c_str());
+			if(toLower(token) != "nack") {
+				int tok_start = atoi(trim(nextToken(token)).c_str());
+				int tok_end   = atoi(trim(nextToken(token)).c_str());
  
-			if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
-			else {
+				FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
+				FileDescriptor::printTokens(filedes); 
+			}else {
 				cout << "I can't get grant for block "<< i << ", leave me alone! " << endl; 
 				return 0; 
 			}
