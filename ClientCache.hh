@@ -45,6 +45,7 @@ public:
 		return ((ClientCache*)arg) -> revokingFunc(); 
 	}
 
+	void HandleRevoker(TCPSocket *sock); 
 	
 	void insertSingleBlockIntoCache(blockT); //cache a new block
 	void insertMultipleBlocksIntoCache(blockT*,size_t);

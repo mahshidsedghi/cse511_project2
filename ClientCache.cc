@@ -1,4 +1,5 @@
 #include "ClientCache.hh"
+#include "StringFunctions.hh"
 #include <stdexcept>
 #include <signal.h>
 
@@ -111,10 +112,8 @@ void* ClientCache::revokingFunc(){
     	for (;;) {      // Run forever  
       		// Create separate memory for client argument  
       		TCPSocket *clntSock = servSock.accept(); 
-			
 
-
-
+			HandleRevoker(clntSock); 
      	}
   	} catch (SocketException &e) {
     	cerr << e.what() << endl;
@@ -124,6 +123,51 @@ void* ClientCache::revokingFunc(){
 
 	return 0; 
 }
+
+void ClientCache::HandleRevoker(TCPSocket *sock) {
+  cout << "Handling client ";
+  try {
+    cout << sock->getForeignAddress() << ":";
+  } catch (SocketException &e) {
+    cerr << "Unable to get foreign address" << endl;
+  }
+  try {
+    cout << sock->getForeignPort();
+  } catch (SocketException &e) {
+    cerr << "Unable to get foreign port" << endl;
+  }
+  cout << " with thread " << pthread_self() << endl;
+
+  // Send received string and receive again until the end of transmission
+  char echoBuffer[RCVBUFSIZE]; 
+ 
+  int recvMsgSize;
+  string recvCommand(""); 
+  if ((recvMsgSize = sock->recv(echoBuffer, RCVBUFSIZE)) > 0) { // Zero means end of transmission
+	echoBuffer[recvMsgSize] = '\0'; 
+	recvCommand += echoBuffer; 
+
+  	string command = nextToken(recvCommand); 
+  	command = toLower(command); 
+
+	cout << "command: " << command << endl; 
+
+  	if ( command == "revoke" ){
+		string file_name = nextToken(recvCommand); 
+		int start = atoi(trim(nextToken(recvCommand)).c_str());  
+		int end  =  atoi(trim(nextToken(recvCommand)).c_str());
+		string mode = trim(nextToken(recvCommand)); 
+		string response = FileDescriptor::revokePermission(file_name, start, end, mode[0]); 
+
+  		sock->send(response.c_str(), response.length());
+  	}
+	else {
+		cout << "command has to be revoke!" << endl; 
+	}
+  }
+
+}
+
 void ClientCache::insertSingleBlockIntoCache(blockT b) {
 //	assert(freeSpace.size() + usedSpace.size() <= BUFFER_CACHE_CAPACITY);
 	if (!freeSpace.empty()) {
