@@ -491,7 +491,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 //		else { //there are some readers, so you need to revoke the tokens from them
 //			while(mdrtokens_it != fe.MDRTokens.end()) { //FIXME: check if I am the not the writer
 			interval = Interval(interval_start, interval_end);
-			if (tr1::get<0>(*it) == interval) {//if there is overlap 
+			if (tr1::get<0>(*mdrtokens_it) == interval) {//if there is overlap 
 				reader_IP = tr1::get<1>(*mdrtokens_it);
 				reader_port = tr1::get<2>(*mdrtokens_it);
 				message = "";
