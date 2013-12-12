@@ -4,7 +4,7 @@
 
 int FileDescriptor::next_file_descriptor = 0;  
 OpenFile_Entry FileDescriptor::OFDT[MAX_NUM_FILES];
-
+pthread_mutex_t FileDescriptor::file_desc_mutex = PTHREAD_MUTEX_INITIALIZER; 
 
 void FileDescriptor::ofdt_print_all() {
 	for (int i = 0; i < MAX_NUM_FILES; i++){

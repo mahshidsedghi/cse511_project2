@@ -5,13 +5,15 @@
 #include <iostream>
 #include <sstream>
 #include <map>
+#include <pthread.h>
 
 using namespace std; 
 
 #define MAX_NUM_FILES 256
 
 typedef map<Interval,char, mycomparison> TOKEN_MAP ; 
-struct OpenFile_Entry{
+class OpenFile_Entry{
+public:
 	int desc; 
 	fileRecipe * file_recipe; 
 	bool open; 
@@ -21,6 +23,12 @@ struct OpenFile_Entry{
 
 	TOKEN_MAP tokens; 
 
+	pthread_mutex_t entry_mutex;	
+	
+	OpenFile_Entry(){
+		entry_mutex = PTHREAD_MUTEX_INITIALIZER; 
+	}
+
 }; 
 
 class FileDescriptor {
@@ -28,6 +36,7 @@ private:
 	static int next_file_descriptor;  
 	static OpenFile_Entry OFDT[MAX_NUM_FILES];
 public:
+	
 	static void ofdt_print_all(); 
 	static int ofdt_open_file(fileRecipe * file_recipe, string file_name, string file_mode);
 	static int ofdt_close_file(int fdesc);
@@ -39,6 +48,9 @@ public:
 	static void printTokens	(int fdesc);
 	static string revokePermission(string file_name, int start, int end, char mode); 
 	static void removePermission(int fdesc, int start, int end, char mode); 
+
+	static pthread_mutex_t file_desc_mutex; 
+
 };
 
  
