@@ -90,18 +90,22 @@ void* ClientCache::harvestingFunc(){
 	return 0;
 }
 
+void ClientCache::flush() {
+	for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
+		if (it->second.status == 'D') {
+			writeToFileServer(it->second);
+			it->second.status = 'C';
+		}
+}
+
 void* ClientCache::flushingFunc(){
 //	cout << "flusher thread created successfully for client ID:" << endl;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	while (true) {
 		usleep(10000000); //FIXME: 30S
-		for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
-			if (it->second.status == 'D') {
-				writeToFileServer(it->second);
-				it->second.status = 'C';
-			}
+		flush();
 	}
-	return 0; 
+	return 0;
 }
 void* ClientCache::revokingFunc(){
 	int servPort = -1; 
@@ -174,7 +178,7 @@ void ClientCache::HandleRevoker(TCPSocket *sock) {
   		sock->send(response.c_str(), response.length());
 
 		// FIXME forcefully flush
-
+		flush();
 
   	}
 	else {

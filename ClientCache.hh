@@ -40,11 +40,14 @@ public:
 		//pthread_detach(pthread_self()); 
 		return ((ClientCache*)arg) -> harvestingFunc();
 	}
+
+	void flush();
 	void *flushingFunc(void);
 	static void *callFlushingFunc(void* arg) {
 		//pthread_detach(pthread_self()); 
 		return ((ClientCache*)arg) -> flushingFunc();
 	}
+
 	void *revokingFunc(void);
 	static void *callRevokingFunc(void* arg){
 		return ((ClientCache*)arg) -> revokingFunc(); 
