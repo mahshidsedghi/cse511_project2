@@ -142,6 +142,7 @@ struct fileEntry{
 		file_name = fn; 
 		file_recipe.stripeWidth = fr.stripeWidth; 
 		file_recipe.stripeMask = fr.stripeMask; 
+		fe_lock = PTHREAD_MUTEX_INITIALIZER;
 	}
 	void print() {
 		cout << "write tokens:\n";
@@ -160,6 +161,6 @@ struct fileEntry{
 
 typedef map<string, fileEntry> FILETABLE;
 FILETABLE general_file_table;
-pthread_mutex_t gft_lock;
+pthread_mutex_t gft_lock = PTHREAD_MUTEX_INITIALIZER;
 
 #endif

@@ -209,8 +209,10 @@ string execFunc_create(string arguments){
 		fileEntry fentry(filename, file_recipe);
 		general_file_table.insert(pair<string, fileEntry>(filename, fentry)); 
 	}
-	if (toLower(response) == "nack")
+	if (toLower(response) == "nack"){
+		pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 		return string("failed");
+	}
 	
 	pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 	return string("success"); 
@@ -227,6 +229,7 @@ string execFunc_open(string arguments){
 	it = general_file_table.find(filename); 
 	if ( it != general_file_table.end()) {
 		f_recipe = it->second.file_recipe; 
+		pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 		return f_recipe.toString(); 
 	}
 	
@@ -295,8 +298,11 @@ string execFunc_delete(string arguments){
 	
 	general_file_table.erase(filename); 
 
-	if (toLower(response) == "nack")
+	if (toLower(response) == "nack"){
+		pthread_mutex_unlock(&gft_lock); //unlock general file table lock
+	
 		return string("failed");
+	}
 
 	pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 	return string("success"); 
@@ -326,7 +332,6 @@ string execFunc_fstat(string arguments){
 
 		string command("fstat "+ filename); 
 		try{
-			cout << "++++++++++++++++++++++++++++++ " << FileServerList[i].first << "    " << FileServerList[i].second << endl; 
 			TCPSocket sock(FileServerList[i].first, FileServerList[i].second);
  			sock.send(command.c_str(), command.length()); 
 	
@@ -359,7 +364,7 @@ string execFunc_fstat(string arguments){
 			if (modification_time > last_mtime) last_mtime = modification_time; 
 			total_size += file_size; 
 		}else {
-
+			pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 			return "nack"; 	
 		}
 
@@ -394,21 +399,26 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	string writer_IP, reader_IP;
 	int writer_port, reader_port;
 
+	pthread_mutex_lock(&gft_lock); 
 	map<string, fileEntry>::iterator it = general_file_table.find(file_name); //FIX: does it need lock?
 
+	cout << "locked gft " << endl; 
 	if (it == general_file_table.end()) { //first reader/writer of the file
+		pthread_mutex_unlock(&gft_lock); 
 		cout << "TOKEN_MNG: trying to get tokens for a non exisiting file!\n";
 		return "nack";
 	}
 	
 	fileEntry& fe = it->second;
 
-	//get general file table lock	
-	pthread_mutex_lock(&gft_lock);
 	
 	//try for file entry lock
-	if (pthread_mutex_trylock(&fe.fe_lock) != 0 ) //failed to get lock for this file entry
+	if (pthread_mutex_trylock(&fe.fe_lock) != 0 ){ //failed to get lock for this file entry
+			
+		pthread_mutex_unlock(&gft_lock);
+		cout << "return locking failed " << endl; 
 		return "locking_failed";
+	}
 	
 	Interval interval(interval_start, interval_end);
 	map<Interval,tr1::tuple<string,int> >::iterator mdwtokens_it;
@@ -468,14 +478,13 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		interval.m_start = new_start; 
 		interval.m_end = new_end; 
 		*/
-		cout << "|+++++++++++++++++++ client port " << client_port << endl; 
 		fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
 		response = "";
 		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
 		response += " ";
 		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 		fe.print();
-		return response;
+
 		
 	} //read mode
 
@@ -588,7 +597,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		response += " ";
 		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 		fe.print();
-		return response;
+		
 	} //write mode
 
 	fe.print();

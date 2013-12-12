@@ -144,7 +144,10 @@ int pfs_open(const char * file_name, const char mode){
 
 	string fname(file_name);
 	string fmode(1, mode);   
+
+	pthread_mutex_lock(&FileDescriptor::file_desc_mutex);
 	int fdes = FileDescriptor::ofdt_open_file(fr, fname, fmode); // return file descriptor  
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex);
 	return fdes; 
 }
 ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cache_hit){ 
@@ -379,7 +382,9 @@ ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int 
 
 int pfs_close(int filedes) {
 	// FIXME: call flusher for all block which has write token || blocks are in cache and dirty 
+	pthread_mutex_lock(&FileDescriptor::file_desc_mutex);
 	return FileDescriptor::ofdt_close_file(filedes); 	
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex);
 } 
 int pfs_delete(const char * file_name) { 
 	string servAddress = METADATA_ADDR; 
@@ -401,7 +406,9 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 	string servAddress = METADATA_ADDR; 
 	unsigned short servPort = METADATA_PORT; 
 	
+	pthread_mutex_lock(&FileDescriptor::file_desc_mutex);
 	string file_name = FileDescriptor::ofdt_fetch_name (filedes); 
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex);
 
 	string command ("fstat "); 
 	command += file_name;  
@@ -413,9 +420,11 @@ int pfs_fstat(int filedes, struct pfs_stat * buf){
 
 	if (toLower(response) == "nack") return 0; // failed 
 
+	pthread_mutex_lock(&FileDescriptor::file_desc_mutex);
 	size_t fsize = atoi((trim(nextToken(response)).c_str())); 	
 	time_t mtime = atoi((trim(nextToken(response)).c_str())); 
 	time_t ctime = atoi((trim(nextToken(response)).c_str())); 
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex);
 	
 	buf->pst_ctime = ctime; 
 	buf->pst_mtime = mtime; 
