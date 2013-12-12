@@ -445,6 +445,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		interval.m_start = new_start; 
 		interval.m_end = new_end; 
 		*/
+		cout << "|+++++++++++++++++++ client port " << client_port << endl; 
 		fe.MDRTokens.push_back(tr1::make_tuple(interval,client_IP,client_port));
 		response = "";
 		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_start ))->str();
@@ -510,7 +511,6 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		interval.m_end = new_end; 	
 		*/
 		//then handle the readers
-		vector<tr1::tuple<Interval,string,int> > to_erase; 
 		for(mdrtokens_it = fe.MDRTokens.begin(); mdrtokens_it != fe.MDRTokens.end(); ++mdrtokens_it) {
 			Interval interval2 = tr1::get<0>(*mdrtokens_it);  
 			if (interval.is_equal(interval2)) {//if there is overlap 
