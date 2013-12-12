@@ -175,10 +175,11 @@ void ClientCache::HandleRevoker(TCPSocket *sock) {
 		int start = atoi(trim(nextToken(recvCommand)).c_str());  
 		int end  =  atoi(trim(nextToken(recvCommand)).c_str());
 		string mode = trim(nextToken(recvCommand)); 
+	
+		// FIXME: check if there is any write token in the revoked interval, if yes, we need to flush, otherwise no need to flush 	
 		string response = FileDescriptor::revokePermission(file_name, start, end, mode[0]); 
   		sock->send(response.c_str(), response.length());
 
-		// FIXME forcefully flush
 		flush("forcefully");
 
   	}
