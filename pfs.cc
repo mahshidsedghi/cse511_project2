@@ -149,10 +149,12 @@ int pfs_open(const char * file_name, const char mode){
 }
 ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cache_hit){ 
 
-	// FIXME 
+	 
+	pthread_mutex_lock(&FileDescriptor::file_desc_mutex); 
 	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe(filedes); 
 	string file_name = FileDescriptor::ofdt_fetch_name(filedes); 
 	string file_mode = FileDescriptor::ofdt_fetch_mode(filedes); 
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
 	
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
@@ -163,9 +165,8 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		already_have_token[i] = true;
 	}
  
-	bool grant = false; 
 	do {
-		// file desc lock  // FIXME entry_mutex 
+		// file desc lock 
 		pthread_mutex_lock(&FileDescriptor::file_desc_mutex); 
 
 		vector<Interval> int_list = required_token(filedes, block_offset, end_block_offset); 
@@ -180,39 +181,26 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 			break; 
 		}else {
 			
-
-			// file desc unlock  // FIXME entry_mutex 
+			// file desc unlock  
 			pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
-
-
-			grint = true; 			
-			// for all vector elements // FIXME 
-		
-			string token = requestToken(file_name, block_offset, end_block_offset, 'r');
+				
+			string token = requestToken(file_name, int_list[0].m_start, int_list[0].m_end, 'r');
 			
 			if(toLower(token) != "locking_failed" && toLower(token) != "failed"){
 				int tok_start = atoi(trim(nextToken(token)).c_str());
 				int tok_end   = atoi(trim(nextToken(token)).c_str());
 
-				// file desck lock // FIXME entry_mutex 				
+				// file desck lock 
 				pthread_mutex_lock(&FileDescriptor::file_desc_mutex); 
 
 				FileDescriptor::addPermission(filedes, tok_start, tok_end, 'r'); 
 				FileDescriptor::printTokens(filedes); 
 				
-				prthead_mutex_unlock( filedescrptor ); // FIXME 
-			}else {
-				grant = false; 
+				pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
 			}
 
-			//} // end for //FIXME 
-			
-			if (grant) 
-				lock (fdesc) ; 
-			
-
 		}
-	}while (!grant); 
+	}while (true);  
 
 	// Now, I should have file_desc_mutex locked 
 
@@ -233,7 +221,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 			//cache unlock
 			pthread_mutex_unlock(&ClientCache::cache_mutex); 			
 		}
-		if (!already_have_token[i-block_offset] || !hit)else {
+		if (!already_have_token[i-block_offset] || !hit){
 			string server_address; 
 			int server_port; 
 			size_t within_offset; 
@@ -253,7 +241,7 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 		
 	}
 	 
-	// file desc unlock // fdesc entry
+	// file desc unlock 
 	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
 
 	int off_first = offset % (PFS_BLOCK_SIZE * ONEKB);
@@ -262,115 +250,131 @@ ssize_t pfs_read(int filedes, void *buf, ssize_t nbyte, off_t offset, int * cach
 	return strlen((char *)buf);
 }
 
-ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
-	
-	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe (filedes); 
-	string file_name = FileDescriptor::ofdt_fetch_name   (filedes); 
-	string file_mode = FileDescriptor::ofdt_fetch_mode   (filedes); 
+void find_buf_offset(int i, off_t offset, int nbyte, unsigned int block_offset, unsigned int end_block_offset, int &buf_start, int &buf_end){
+	if (i == end_block_offset) 
+		buf_end = (offset + nbyte - 1) % (PFS_BLOCK_SIZE * ONEKB);
+	else
+		 buf_end = PFS_BLOCK_SIZE * ONEKB - 1; 
 
+	if (i == block_offset)
+		 buf_start = offset % (PFS_BLOCK_SIZE * ONEKB); 
+	else
+		 buf_start = 0; 
+
+
+}
+ssize_t pfs_write(int filedes, const void *buf, size_t nbyte, off_t offset, int *cache_hit){
+	 
+	pthread_mutex_lock(&FileDescriptor::file_desc_mutex); 
+	fileRecipe *fr   = FileDescriptor::ofdt_fetch_recipe(filedes); 
+	string file_name = FileDescriptor::ofdt_fetch_name(filedes); 
+	string file_mode = FileDescriptor::ofdt_fetch_mode(filedes); 
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
+	
 	int block_offset = offset / (PFS_BLOCK_SIZE * ONEKB); 
 	int end_block_offset = (offset + nbyte - 1) / (PFS_BLOCK_SIZE * ONEKB); 
 	int n_blocks = end_block_offset - block_offset + 1 ;  
 
+	bool already_have_token[n_blocks];
+	for (int i = 0; i < n_blocks; i++){
+		already_have_token[i] = true;
+	}
+ 
+	do {
+		// file desc lock 
+		pthread_mutex_lock(&FileDescriptor::file_desc_mutex); 
 
+		vector<Interval> int_list = required_token(filedes, block_offset, end_block_offset); 
+		
+		for (vector<Interval>::iterator it = int_list.begin(); it < int_list.end(); ++it){
+			for (int i = it->m_start; i <= it->m_end; i++){
+				already_have_token[i - block_offset] = false; 
+			}
+		}
 
-	int start = -1; 
-	int end = -1; 
-	vector<Interval> int_list; 
+		if (int_list.size() == 0) {
+			break; 
+		}else {
+			
+			// file desc unlock  
+			pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
+				
+			string token = requestToken(file_name, int_list[0].m_start, int_list[0].m_end, 'w');
+			
+			if(toLower(token) != "locking_failed" && toLower(token) != "failed"){
+				int tok_start = atoi(trim(nextToken(token)).c_str());
+				int tok_end   = atoi(trim(nextToken(token)).c_str());
+
+				// file desck lock 
+				pthread_mutex_lock(&FileDescriptor::file_desc_mutex); 
+
+				FileDescriptor::addPermission(filedes, tok_start, tok_end, 'w'); 
+				FileDescriptor::printTokens(filedes); 
+				
+				pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
+			}
+
+		}
+	}while (true);  
+
+	// Now, I should have file_desc_mutex locked 
+
+	int buf_start = -1; 
+	int buf_end = -1; 
+	
+	string response((char *)buf);
 	for (int i = block_offset; i <= end_block_offset; i++){
-		if (FileDescriptor::checkPermission(filedes, i , 'w')) {
-			if (start != -1){
-				end = i-1; 
-				int_list.push_back(Interval(start , end)); 
-				start = -1; 
-				end = -1; 
+		
+		find_buf_offset(i, offset, nbyte, block_offset, end_block_offset, buf_start, buf_end);
+
+		bool hit = false; 
+		blockT *bt;  
+		if (already_have_token[i - block_offset]){
+			//cache lock
+			pthread_mutex_lock(&ClientCache::cache_mutex); 
+
+			hit = disk_cache.lookupBlockInCache(file_name, i); 
+			if (hit){
+				bt = disk_cache.getBlockFromCache(file_name, i); 
+		
+				for (int j = buf_start; j <= buf_end; j++) {
+					bt->data[j] = ((char*)buf)[i - block_offset + j];
+				}
+
+				bt->status = 'D';
 			}
-			continue; 
-		}else{
-			if (start == -1)
-				start = i; 
+			//cache unlock
+			pthread_mutex_unlock(&ClientCache::cache_mutex); 			
 		}
-	}
-	if (start != -1 && end == -1) {
-		end = end_block_offset; 
-		int_list.push_back(Interval(start, end)); 
-	}
-
-	cout << "requesting write "; 
-	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
-		cout << "(" << it->m_start << "," << it->m_end << ")"; 
-	}		
-	cout << endl; 
-
-	for (vector<Interval>::iterator it = int_list.begin(); it != int_list.end(); ++it){
-		string token = requestToken(file_name, it->m_start, it->m_end, 'w');
-		int tok_start = atoi(trim(nextToken(token)).c_str());
-		int tok_end   = atoi(trim(nextToken(token)).c_str());
- 
-		if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'w'); 
-		else {
-			cout << "cloudn't get the token for (" << it->m_start << ","<< it->m_end <<")"<< endl; 
-		}
-	}	
-
-	int off_start = 0;
-	int off_end = 0; 
-	
- 
-	for (int i = block_offset; i <= end_block_offset; i++) {
-		if (i == end_block_offset) 
-			off_end = (offset + nbyte - 1) % (PFS_BLOCK_SIZE * ONEKB);
- 		else
-			 off_end = PFS_BLOCK_SIZE * ONEKB - 1; 
-
-		if (i == block_offset)
-			 off_start = offset % (PFS_BLOCK_SIZE * ONEKB); 
-		else
-			 off_start = 0; 
-
-		bool permit = FileDescriptor::checkPermission(filedes, i, 'w');
-		if (!permit){ 	
-			string token = requestToken(file_name, i, i , 'w'); 
-			int tok_start = atoi(trim(nextToken(token)).c_str());
-			int tok_end   = atoi(trim(nextToken(token)).c_str());
- 
-			if(toLower(token) != "nack") FileDescriptor::addPermission(filedes, tok_start, tok_end, 'w'); 
-			else {
-				cout << "I can't get grant for block "<< i << ", leave me alone! " << endl; 
-				return 0; 
-			}
-		}
-	
-		bool hit = disk_cache.lookupBlockInCache(file_name, i);
-		blockT * bt;  
-		if (hit == true) {
-			bt = disk_cache.getBlockFromCache(file_name, i);
-		}
-		else {
+		if (!already_have_token[i-block_offset] || !hit){
 			string server_address; 
 			int server_port; 
-			size_t within_offset;
-			 
+			size_t within_offset; 
 			corresponding_server(i, fr->stripeWidth, server_address, server_port, within_offset); // call by reference  of server_address, server_port, within_offset 
-			bt = disk_cache.readFromFileServer(file_name, within_offset, server_address, server_port); 
-			
-		}
-		if (bt != NULL){
-			bt->status = 'D';
-			for (int j = off_start; j <= off_end; j++) {
+			 
+			bt = disk_cache.readFromFileServer(file_name, within_offset, server_address, server_port); 	
+						
+			for (int j = buf_start; j <= buf_end; j++) {
 				bt->data[j] = ((char*)buf)[i - block_offset + j];
 			}
-			if (hit == false){
-				disk_cache.insertSingleBlockIntoCache(*bt); 
-			}
-			else 				///////////////
-				disk_cache.putBlockIntoCache(*bt); //CONFIRM: put the modified block back into the cache. OK?
-		}
-		else 
-			return 0;
-				
-	}	
-	return strlen((char *)buf); 
+
+			bt->status = 'D';
+			// cache lock
+			pthread_mutex_lock(&ClientCache::cache_mutex); 
+
+			disk_cache.insertSingleBlockIntoCache(*bt); 
+
+			// cache unlock
+			pthread_mutex_unlock(&ClientCache::cache_mutex); 
+		}				
+		
+	}
+	 
+	// file desc unlock 
+	pthread_mutex_unlock(&FileDescriptor::file_desc_mutex); 
+
+	return strlen((char *)buf);
+
 }
 
 int pfs_close(int filedes) {

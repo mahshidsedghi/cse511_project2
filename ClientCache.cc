@@ -47,10 +47,16 @@ ClientCache::ClientCache(){
 
 void* ClientCache::harvestingFunc(){
 //	cout << "harvester thread created successfully for client ID:" << endl;
+//
+
+	
 	priority_queue<blockT,std::vector<blockT>,mycomparison> harvest_queue;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
 	int k;
 	while (true) {
+		
+		pthread_mutex_lock(&ClientCache::cache_mutex); 
+
 		if (freeSpace.size() < FREE_LIST_MIN_T) {
 //			cout << freeSpace.size() << "\t" << FREE_LIST_MIN_T <<endl << endl;
 //			cout << "harvesting" << endl;
@@ -86,6 +92,9 @@ void* ClientCache::harvestingFunc(){
 				harvest_queue.pop();
 			}
 		}
+
+		
+		pthread_mutex_unlock(&ClientCache::cache_mutex); 
 	}
 	return 0;
 }
@@ -93,11 +102,18 @@ void* ClientCache::harvestingFunc(){
 void ClientCache::flush(string msg) {
 	cout << "flusher has been called " << msg << endl;
 	std::tr1::unordered_map<LBA,blockT>::iterator it;
+
+	pthread_mutex_lock(&ClientCache::cache_mutex); 
 	for (it = usedSpace.begin(); it != usedSpace.end(); ++it)
 		if (it->second.status == 'D') {
-			writeToFileServer(it->second);
+			blockT bt = it->second; 
+			pthread_mutex_unlock(&ClientCache::cache_mutex); 
+			writeToFileServer(bt);
+			pthread_mutex_lock(&ClientCache::cache_mutex); 
 			it->second.status = 'C';
 		}
+	
+	pthread_mutex_unlock(&ClientCache::cache_mutex); 
 }
 
 void* ClientCache::flushingFunc(){

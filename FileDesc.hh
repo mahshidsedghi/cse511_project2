@@ -23,10 +23,10 @@ public:
 
 	TOKEN_MAP tokens; 
 
-	pthread_mutex_t entry_mutex;	
+	//pthread_mutex_t entry_mutex;	
 	
 	OpenFile_Entry(){
-		entry_mutex = PTHREAD_MUTEX_INITIALIZER; 
+	//	entry_mutex = PTHREAD_MUTEX_INITIALIZER; 
 	}
 
 }; 
