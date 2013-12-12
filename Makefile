@@ -26,7 +26,7 @@ endif
 
 AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_types.hh mt_data_types.hh net_addresses.hh 
 
-all: test MetadataManager FileServer  copy 
+all: test1 test2  MetadataManager FileServer  copy 
 
 test1: test_client1.cc pfs.hh FileDesc.hh PracticalSocket.cc ClientCache.cc pfs.cc 
 	$(CXX) $(CXXFLAGS) -o test_client1 PracticalSocket.cc  ClientCache.cc pfs.cc FileDesc.cc test_client1.cc -lpthread 
