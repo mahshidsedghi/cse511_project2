@@ -32,6 +32,9 @@ public:
 	static const size_t FREE_LIST_MIN_T = 2035; //FIXME
 	static const size_t FREE_LIST_MAX_T = 2042; //FIXME
 	static const int BUFFER_CACHE_CAPACITY = 2*1024/PFS_BLOCK_SIZE; //max number of blocks in buffer cache
+	
+	//pthread_mutex_t cache_mutex = PTHREAD_MUTEX_INITIALIZER; 
+
 	void *harvestingFunc();
 	static void *callHarvestingFunc(void* arg) {
 		//pthread_detach(pthread_self()); 

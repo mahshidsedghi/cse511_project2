@@ -171,8 +171,11 @@ void ClientCache::HandleRevoker(TCPSocket *sock) {
 		int end  =  atoi(trim(nextToken(recvCommand)).c_str());
 		string mode = trim(nextToken(recvCommand)); 
 		string response = FileDescriptor::revokePermission(file_name, start, end, mode[0]); 
-
   		sock->send(response.c_str(), response.length());
+
+		// FIXME forcefully flush
+
+
   	}
 	else {
 		cout << "command has to be revoke!" << endl; 
