@@ -155,10 +155,11 @@ struct fileEntry{
 			cout << tr1::get<1>(*r_it) << ", port:" << tr1::get<2>(*r_it) << endl;
 		}
 	}
-}; 
+	pthread_mutex_t fe_lock;
+};
 
-typedef map<string, fileEntry> FILETABLE;  
-FILETABLE general_file_table; 
-
+typedef map<string, fileEntry> FILETABLE;
+FILETABLE general_file_table;
+pthread_mutex_t gft_lock;
 
 #endif
