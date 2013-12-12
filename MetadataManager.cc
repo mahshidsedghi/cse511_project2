@@ -479,14 +479,14 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 					Interval interval_old (mdwtokens_it->first.m_start, mdwtokens_it->first.m_end);
 					vector<Interval> sub_intervals = interval_old.subtract_interval(interval);
 					
-								
-
 					fe.MDWTokens.erase(mdwtokens_it); //remove the writers token				
 
 					for (int i = 0; i < sub_intervals.size(); i++){
 						fe.MDWTokens.insert(make_pair(sub_intervals[i], temp)); //remove the writers token				
 					}
 
+				}else{
+					cout << "TOKEN_MNG: receive nack from revoker " << endl; 
 				}
 				//do merging of intervals and call find again
 				//merge intervals
@@ -550,6 +550,8 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 				//	mdrtokens_it--; 
 				//	}
 
+				}else {
+					cout << "get nack from revoker " << endl; 
 				}
 				
 			} //if
