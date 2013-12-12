@@ -165,6 +165,8 @@ string sendToServer(string message, string IP, int port){
 }
 string execFunc_create(string arguments){
 
+	pthread_mutex_lock(&gft_lock); //get general file table lock
+
 	string filename     = trim(nextToken(arguments)); 
 	string stripe_w_str = nextToken(arguments); 
 
@@ -209,10 +211,14 @@ string execFunc_create(string arguments){
 	}
 	if (toLower(response) == "nack")
 		return string("failed");
-
+	
+	pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 	return string("success"); 
 }
+
 string execFunc_open(string arguments){
+	pthread_mutex_lock(&gft_lock); //get general file table lock
+
 	string filename = trim(nextToken(arguments)); 
 	string mode     = trim(nextToken(arguments)); 
 
@@ -223,6 +229,8 @@ string execFunc_open(string arguments){
 		f_recipe = it->second.file_recipe; 
 		return f_recipe.toString(); 
 	}
+	
+	pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 	return ""; 
 }
 
@@ -247,6 +255,8 @@ void execFunc_write(string arguments){
 	// I'm not sure if we need this or not 
 }
 string execFunc_delete(string arguments){
+
+	pthread_mutex_lock(&gft_lock); //get general file table lock
 	string filename     = nextToken(arguments); 
 	map<string, fileEntry>::iterator it; 
 	it = general_file_table.find(filename); 
@@ -288,9 +298,12 @@ string execFunc_delete(string arguments){
 	if (toLower(response) == "nack")
 		return string("failed");
 
+	pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 	return string("success"); 
 }
 string execFunc_fstat(string arguments){
+	pthread_mutex_lock(&gft_lock); //get general file table lock
+	
 	string filename = nextToken(arguments); 
 	
 	map<string, fileEntry>::iterator it; 
@@ -358,12 +371,13 @@ string execFunc_fstat(string arguments){
 	ret_str += " ";
 	ret_str += static_cast<ostringstream*>( &(ostringstream() << last_ctime ))->str();
 
+	pthread_mutex_unlock(&gft_lock); //unlock general file table lock
 	return ret_str; 
 }
 
 string execFunc_request_token(string arguments){ //FIXME <request_token,file_name,block_offset,mode>
 	cout << "TOKEN_MNG: request_token called with this arg: " << arguments << endl;
-
+	
 	string file_name = nextToken(arguments);
 	
 	int interval_start = atoi(trim(nextToken(arguments)).c_str());
@@ -380,13 +394,22 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	string writer_IP, reader_IP;
 	int writer_port, reader_port;
 
-	map<string, fileEntry>::iterator it = general_file_table.find(file_name);
+	map<string, fileEntry>::iterator it = general_file_table.find(file_name); //FIX: does it need lock?
 
 	if (it == general_file_table.end()) { //first reader/writer of the file
 		cout << "TOKEN_MNG: trying to get tokens for a non exisiting file!\n";
 		return "nack";
 	}
+	
 	fileEntry& fe = it->second;
+
+	//get general file table lock	
+	pthread_mutex_lock(&gft_lock);
+	
+	//try for file entry lock
+	if (pthread_mutex_trylock(&fe.fe_lock) != 0 ) //failed to get lock for this file entry
+		return "locking_failed";
+	
 	Interval interval(interval_start, interval_end);
 	map<Interval,tr1::tuple<string,int> >::iterator mdwtokens_it;
 	vector<tr1::tuple<Interval,string,int> >::iterator mdrtokens_it;
@@ -567,6 +590,11 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		fe.print();
 		return response;
 	} //write mode
+
 	fe.print();
+
+	pthread_mutex_unlock(&(fe.fe_lock));
+	pthread_mutex_unlock(&gft_lock);
+
 	return response;
 }
