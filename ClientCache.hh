@@ -41,7 +41,7 @@ public:
 		return ((ClientCache*)arg) -> harvestingFunc();
 	}
 
-	void flush();
+	void flush(string msg);
 	void *flushingFunc(void);
 	static void *callFlushingFunc(void* arg) {
 		//pthread_detach(pthread_self()); 
