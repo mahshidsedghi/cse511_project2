@@ -569,5 +569,4 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 	} //write mode
 	fe.print();
 	return response;
-
-
+}
