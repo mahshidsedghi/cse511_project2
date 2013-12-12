@@ -43,7 +43,7 @@ struct Interval
         unsigned int m_start;
         unsigned int m_end;
 
-	string toString(){
+	string toString() const {
 		string start = static_cast<ostringstream*>( &(ostringstream() << m_start ))->str();
 		string end = static_cast<ostringstream*>( &(ostringstream() << m_end ))->str();
 
@@ -85,6 +85,7 @@ struct Interval
 		//new	--------------	------------	 ------------
 		//old	   ------	-----		 	-----
 		else if ((in.m_start <= m_start) && (in.m_end >= m_end)) {
+			cout << "subtract_interval: case 1\n";
 		}
 		
 		//new     ----	      	 ----			-----
@@ -94,18 +95,21 @@ struct Interval
 				ret_vector.push_back(Interval(m_start,in.m_start-1));
 			if (m_end != in.m_end)
 				ret_vector.push_back(Interval(in.m_end+1,m_end));
+			cout << "subtract_interval: case 2\n";
 		}
 
 		//new  --------	           --------
 		//old      ---------     	  -------
 		else if ((in.m_start<m_start) && (in.m_end>=m_start) && (in.m_end<m_end) ) {
 			ret_vector.push_back(Interval(in.m_end+1,m_end));
+			cout << "subtract_interval: case 3\n";
 		}
 		
 		//new       ---------		   ---------
 		//old	--------    	     -------
 		else if ((m_start<in.m_start) && (m_end>=in.m_start) && (m_end<in.m_end) ) {
-			ret_vector.push_back(Interval(m_start,in.m_end-1));
+			ret_vector.push_back(Interval(m_start,in.m_start-1));
+			cout << "subtract_interval: case 4\n";
 		}
 		
 		//any other case?
@@ -139,7 +143,18 @@ struct fileEntry{
 		file_recipe.stripeWidth = fr.stripeWidth; 
 		file_recipe.stripeMask = fr.stripeMask; 
 	}
-
+	void print() {
+		cout << "write tokens:\n";
+		for(map<Interval,tr1::tuple<string,int> >::iterator w_it = MDWTokens.begin(); w_it != MDWTokens.end(); ++w_it) {
+			cout <<"Interval" << w_it->first.toString()<<", IP:";
+			cout << tr1::get<0>(w_it->second) << ", port:" << tr1::get<1>(w_it->second) << endl;
+		}
+		cout << "read tokens:\n";
+		for(vector<tr1::tuple<Interval,string,int> >::iterator r_it = MDRTokens.begin(); r_it != MDRTokens.end(); ++r_it) {
+			cout <<"Interval" << tr1::get<0>(*r_it).toString()<<", IP:";
+			cout << tr1::get<1>(*r_it) << ", port:" << tr1::get<2>(*r_it) << endl;
+		}
+	}
 }; 
 
 typedef map<string, fileEntry> FILETABLE;  

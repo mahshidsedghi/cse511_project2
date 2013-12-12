@@ -565,7 +565,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 		response += static_cast<ostringstream*>( &(ostringstream() << interval.m_end ))->str();
 		return response;
 	} //write mode
-
+	fe.print();
 	return response;
 }
 
