@@ -9,7 +9,7 @@ using namespace std;
 size_t ClientCache::clientID = 0;
 
 size_t ClientCache::LAST_ACCESS = 0;
-
+pthread_mutex_t ClientCache::cache_mutex = PTHREAD_MUTEX_INITIALIZER; 
 
 ClientCache::ClientCache(){
 	clientID++; 
@@ -278,7 +278,7 @@ blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, 
 	size_t temp_offset = (block_offset & int(pow(2.0,22.0)-1));
 	LBA block_ID = file_ID | temp_offset;
 
-	bool hit = lookupBlockInCache(file_name, block_ID); 
+	bool hit = false; // lookupBlockInCache(file_name, block_ID);  // narges 
 	
 	string response;
 
@@ -286,7 +286,7 @@ blockT * ClientCache::readFromFileServer(string file_name, size_t block_offset, 
 
 	if (hit == true){
 		cout << "the block hit in the cache " << endl; 
-		bt = getBlockFromCache(file_name, block_ID); // FIXME get multiple blocks 
+	//	bt = getBlockFromCache(file_name, block_ID); // FIXME get multiple blocks  // narges 
 		response =  bt->data;
 	}
 	else {
