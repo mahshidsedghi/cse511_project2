@@ -26,13 +26,16 @@ endif
 
 AUX_H=PracticalSocket.hh StringFunctions.hh FileDesc.hh net_addresses.hh data_types.hh mt_data_types.hh net_addresses.hh 
 
-all: test1 test2  MetadataManager FileServer  copy 
+all: create test1 test2  MetadataManager FileServer  copy 
 
 test1: test_client1.cc pfs.hh FileDesc.hh PracticalSocket.cc ClientCache.cc pfs.cc 
 	$(CXX) $(CXXFLAGS) -o test_client1 PracticalSocket.cc  ClientCache.cc pfs.cc FileDesc.cc test_client1.cc -lpthread 
 
 test2: test_client2.cc pfs.hh FileDesc.hh PracticalSocket.cc ClientCache.cc pfs.cc 
 	$(CXX) $(CXXFLAGS) -o test_client2 PracticalSocket.cc  ClientCache.cc pfs.cc FileDesc.cc test_client2.cc -lpthread 
+
+create: test_create.cc pfs.hh FileDesc.hh PracticalSocket.cc ClientCache.cc pfs.cc 
+	$(CXX) $(CXXFLAGS) -o test_create PracticalSocket.cc  ClientCache.cc pfs.cc FileDesc.cc test_create.cc -lpthread 
 
 #PracticalSocket: PracticalSocket.cc 
 #	$(CXX) $(CXXFLAGS) -o PracticalSocket.cc -lpthread
