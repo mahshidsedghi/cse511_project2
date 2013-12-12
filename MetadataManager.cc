@@ -547,7 +547,7 @@ string execFunc_request_token(string arguments){ //FIXME <request_token,file_nam
 					}
 					
 				//	if (mdrtokens_it != fe.MDRTokens.begin()){
-					mdrtokens_it--; 
+				//	mdrtokens_it--; 
 				//	}
 
 				}
